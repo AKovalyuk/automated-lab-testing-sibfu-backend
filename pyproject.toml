@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "automated-lab-testing-sibfu-backend"
+version = "0.1.0"
+description = "Backend service for automatic testing of student work"
+authors = ["Alex Kovalyuk"]
+readme = "README.md"
+packages = [{include = "automated_lab_testing_sibfu_backend"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.104.0"
+aiohttp = "^3.8.6"
+asyncpg = "^0.28.0"
+sqlalchemy = "^2.0.22"
+redis = "^5.0.1"
+celery = "^5.3.4"
+psycopg2-binary = "^2.9.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
