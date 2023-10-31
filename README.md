@@ -1,3 +1,9 @@
 ### Web application for automatic testing of programming tasks
 
-To view `doc/*.puml` files, use **Plantuml**
+### Requirements
+
+- Docker and docker-compose plugin
+- Plantuml (only to view `.puml` documentation files)
+
+### Run
+
