@@ -1,1 +1,3 @@
-### Веб-приложение для автоматического тестирования задач по программированию
+### Web application for automatic testing of programming tasks
+
+To view `doc/*.puml` files, use **Plantuml**
