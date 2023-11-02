@@ -17,6 +17,9 @@ celery = "^5.3.4"
 psycopg2-binary = "^2.9.9"
 alembic = "^1.12.1"
 pytest = "^7.4.3"
+pylint = "^3.0.2"
+pydantic-settings = "^2.0.3"
+uvicorn = "^0.23.2"
 
 
 [build-system]

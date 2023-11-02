@@ -13,3 +13,6 @@ run:
 
 stop:
 	docker compose down
+
+env:
+	cp .env.sample .env
