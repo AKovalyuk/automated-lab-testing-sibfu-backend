@@ -1,21 +1,28 @@
 from fastapi import FastAPI, APIRouter
 
 from app.endpoints import routers
+from app.config import settings
 
 
 def add_specification_info(app: FastAPI):
     app.title = "Automatic testing programming tasks service"
     app.description = "Service for automatic testing student's programs in SibFU"
     app.version = "0.0.1"
-    app.openapi_url = "/openapi"
-    app.openapi_tags = [...]
-    app.servers = [...]
+    app.openapi_tags = [
+        {"name": "Healthcheck"},
+    ]
+    app.servers = [
+        {
+            "url": f"http://127.0.0.1:{settings.APP_PORT}",
+            "description": "Development server",
+        }
+    ]
     app.openapi_version = "3.1.0"
 
+
 def add_routers(app: FastAPI, router_list: list[APIRouter]):
-    app.root_path = ""
     for router in router_list:
-        app.include_router(router)
+        app.include_router(router, prefix=settings.PATH_PREFIX)
 
 
 def create_app() -> FastAPI:
