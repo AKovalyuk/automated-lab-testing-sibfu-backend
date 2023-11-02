@@ -38,7 +38,7 @@ async def confirm_registration(confirmation_id: Annotated[int, Path()]):
     status_code=status.HTTP_200_OK,
     response_model=AuthenticationOut,
 )
-async def authenticate(credentials: Annotated[AuthenticationIn, Body()]):
+async def authenticate(credentials: Annotated[AuthenticationIn, Body()]) -> AuthenticationOut:
     """
     Authenticate by credentials
     """
