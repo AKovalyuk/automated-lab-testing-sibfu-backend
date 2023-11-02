@@ -45,6 +45,7 @@ entity attempt {
     practice_id: UUID
     user_id: UUID
     task_id: UUID
+    submission_ids: ARRAY[UUID]
 }
 
 entity language {
