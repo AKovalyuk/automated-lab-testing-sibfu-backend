@@ -5,6 +5,9 @@ ARG APP_WORKDIR
 RUN apt-get update && \
     apt-get install --no-install-recommends -y libpq-dev build-essential
 
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONBUFFERED 1
+
 COPY . ${APP_WORKDIR}
 WORKDIR ${APP_WORKDIR}
 
@@ -15,4 +18,4 @@ RUN pip install poetry && \
     whoami && \
     poetry version \
 
-#ENTRYPOINT ['poetry run uvicorn']
+

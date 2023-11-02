@@ -1,0 +1,71 @@
+@startuml
+
+entity user {
+    id: UUID
+    username: VARCHAR
+    display_name: VARCHAR
+    is_teacher: BOOLEAN
+    is_admin: BOOLEAN
+    password_hash: VARCHAR
+    email: VARCHAR
+}
+
+entity participation {
+    role: ENUM/VARCHAR
+    user_id: UUID
+    course_id: UUID
+}
+
+entity course {
+    id: UUID
+    name: VARCHAR
+    description: TEXT
+}
+
+entity task {
+    id: UUID
+    name: VARCHAR
+    description: UUID
+    test_set: ARRAY[UUID]
+    author: UUID
+}
+
+entity practice {
+    id: UUID
+    deadline: TIMESTAMP
+    deadline_type: ENUM/VARCHAR
+    course_id: UUID
+}
+
+entity attempt {
+    status: ENUM/VARCHAR
+    passed_count: INTEGER
+    linter_score: INTEGER
+    language: UUID
+    practice_id: UUID
+    user_id: UUID
+    task_id: UUID
+}
+
+entity language {
+    id: UUID
+    runner_id: INTEGER
+    name: VARCHAR
+}
+
+entity language_permission {
+    language_id: UUID
+    practice_id: UUID
+}
+
+user ||--o{ attempt
+attempt }o--|| task
+attempt }o--|| practice
+user ||--o{ participation
+participation }o--|| course
+practice }o-- course
+user ||--|| task
+language ||--o{ language_permission
+language_permission }o--|| practice
+
+@enduml
