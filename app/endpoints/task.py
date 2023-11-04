@@ -1,10 +1,11 @@
 from uuid import UUID
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Body
+from fastapi import APIRouter, Path, Body, Depends
 from starlette import status
 
 from app.schemas.task import TaskOut, TaskIn
+from app.dependencies.pagination import pagination_dependency, Pagination
 
 
 router = APIRouter(
@@ -21,6 +22,20 @@ router = APIRouter(
 async def get_task(task_id: Annotated[UUID, Path()]) -> TaskOut:
     """
     Get task by id
+    """
+    pass
+
+
+@router.get(
+    path='/',
+    response_model=list[TaskOut],
+    status_code=status.HTTP_200_OK,
+)
+async def get_tasks(
+        pagination: Annotated[Pagination, Depends(pagination_dependency)]
+) -> list[TaskOut]:
+    """
+    List tasks with pagination
     """
     pass
 

@@ -1,10 +1,11 @@
 from uuid import UUID
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Body
+from fastapi import APIRouter, Path, Body, Depends
 from starlette import status
 
 from app.schemas.course import CourseOut, CourseIn
+from app.dependencies.pagination import pagination_dependency, Pagination
 
 
 router = APIRouter(
@@ -21,6 +22,20 @@ router = APIRouter(
 async def get_course(course_id: Annotated[UUID, Path()]) -> CourseOut:
     """
     Get course by id
+    """
+    pass
+
+
+@router.get(
+    path='/',
+    response_model=list[CourseOut],
+    status_code=status.HTTP_200_OK,
+)
+async def get_courses(
+        pagination: Annotated[Pagination, Depends(pagination_dependency)]
+) -> list[CourseOut]:
+    """
+    List courses with pagination
     """
     pass
 
