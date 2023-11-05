@@ -17,3 +17,4 @@ class TaskOut(BaseModel):
     name: str = Field(max_length=100)
     description: UUID
     author: UUID
+    tests: list[Test]

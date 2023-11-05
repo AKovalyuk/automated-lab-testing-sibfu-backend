@@ -40,6 +40,29 @@ async def get_tasks(
     pass
 
 
+@router.get(
+    path='/{task_id}/description',
+    response_model=str,
+    status_code=status.HTTP_200_OK,
+)
+async def get_task_description(task_id: Annotated[UUID, Path()]) -> str:
+    """
+    Get task description (.md)
+    """
+    pass
+
+
+@router.put(
+    path='/{task_id}/description',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def update_task_description(content: Annotated[str, Body()]):
+    """
+    Replace task description (.md)
+    """
+    pass
+
+
 @router.post(
     path='/',
     response_model=TaskOut,
