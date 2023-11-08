@@ -49,7 +49,7 @@ entity attempt {
     user_id: UUID
     task_id: UUID
     submission_ids: ARRAY[UUID]
-    send_time: TIMESTAMP
+    sent_time: TIMESTAMP
 }
 
 entity language {

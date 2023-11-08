@@ -1,10 +1,10 @@
 from uuid import UUID
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Body, Depends
+from fastapi import APIRouter, Path, Body, Depends, Query
 from starlette import status
 
-from app.schemas.course import CourseOut, CourseIn
+from app.schemas.course import CourseOut, CourseIn, ParticipationOut, ParticipationIn
 from app.dependencies.pagination import pagination_dependency, Pagination
 
 
@@ -74,5 +74,64 @@ async def edit_course(
 async def delete_course(course_id: Annotated[UUID, Path()]):
     """
     Delete course endpoint
+    """
+    pass
+
+
+@router.put(
+    path='/{course_id}/participation',
+    status_code=status.HTTP_200_OK,
+)
+async def course_participation_request(
+        course_id: Annotated[UUID, Path()],
+):
+    """
+    Participation in course
+    (PATCH method used for idempotency)
+    """
+    pass
+
+
+@router.get(
+    path='/{course_id}/participation',
+    status_code=status.HTTP_200_OK,
+    response_model=list[ParticipationOut],
+)
+async def get_participation(
+        course_id: Annotated[UUID, Path()],
+) -> list[ParticipationOut]:
+    """
+    Get participants (students) for this course
+    """
+    pass
+
+
+@router.patch(
+    path='/{course_id}/participation',
+    status_code=status.HTTP_200_OK,
+)
+async def update_participation(
+        course_id: Annotated[UUID, Path()],
+        participation_data: list[ParticipationIn],
+) -> list[ParticipationOut]:
+    """
+    Change list of course participants
+    """
+    pass
+
+
+@router.delete(
+    path='/{course_id}/participation',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_participation(
+        course_id: Annotated[UUID, Path()],
+        remove_progress: Annotated[bool, Query(
+            description="Delete participation with student's progress?"
+        )],
+        delete_ids: Annotated[list[UUID], Body()],
+):
+    """
+    Remove student's participation from course
     """
     pass

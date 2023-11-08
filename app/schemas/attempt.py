@@ -22,4 +22,4 @@ class AttemptOut(BaseModel):
     total_tests: int
     linter_score: int | None
     language: Language
-    send_time: datetime
+    sent_time: datetime
