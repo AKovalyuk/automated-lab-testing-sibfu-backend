@@ -32,9 +32,11 @@ entity task {
 
 entity practice {
     id: UUID
+    name: VARCHAR
     deadline: TIMESTAMP
     deadline_type: ENUM/VARCHAR
     course_id: UUID
+    task_id: UUID
 }
 
 entity attempt {
@@ -69,5 +71,6 @@ practice }o-- course
 user ||--|| task
 language ||--o{ language_permission
 language_permission }o--|| practice
+task ||--o{ practice
 
 @enduml

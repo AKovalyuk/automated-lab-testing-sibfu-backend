@@ -32,7 +32,7 @@ async def get_course(course_id: Annotated[UUID, Path()]) -> CourseOut:
     status_code=status.HTTP_200_OK,
 )
 async def get_courses(
-        pagination: Annotated[Pagination, Depends(pagination_dependency)]
+        pagination: Annotated[Pagination, Depends(pagination_dependency)],
 ) -> list[CourseOut]:
     """
     List courses with pagination
