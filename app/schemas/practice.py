@@ -4,10 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
-class Language(BaseModel):
-    id: int
-    name: str
+from .language import Language
 
 
 class PracticeIn(BaseModel):
