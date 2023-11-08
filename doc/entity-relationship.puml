@@ -40,6 +40,7 @@ entity practice {
 }
 
 entity attempt {
+    id: UUID
     status: ENUM/VARCHAR
     passed_count: INTEGER
     linter_score: INTEGER
@@ -48,7 +49,7 @@ entity attempt {
     user_id: UUID
     task_id: UUID
     submission_ids: ARRAY[UUID]
-    attempt_time: TIMESTAMP
+    send_time: TIMESTAMP
 }
 
 entity language {

@@ -5,6 +5,7 @@ from .course import router as course_router
 from .task import router as task_router
 from .practice import router as practice_router
 from .language import router as lang_router
+from .attempt import router as attempt_router
 
 
 routers = [
@@ -15,4 +16,5 @@ routers = [
     task_router,
     practice_router,
     lang_router,
+    attempt_router,
 ]
