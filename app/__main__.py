@@ -8,9 +8,6 @@ def add_specification_info(app: FastAPI):
     app.title = "Automatic testing programming tasks service"
     app.description = "Service for automatic testing student's programs in SibFU"
     app.version = "0.0.1"
-    app.openapi_tags = [
-        {"name": "Healthcheck"},
-    ]
     app.servers = [
         {
             "url": f"http://127.0.0.1:{settings.APP_PORT}",

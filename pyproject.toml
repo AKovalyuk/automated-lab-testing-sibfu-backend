@@ -20,6 +20,8 @@ pytest = "^7.4.3"
 pylint = "^3.0.2"
 pydantic-settings = "^2.0.3"
 uvicorn = "^0.23.2"
+pydantic = {extras = ["email"], version = "^2.4.2"}
+email-validator = "^2.1.0.post1"
 
 
 [build-system]

@@ -32,12 +32,15 @@ entity task {
 
 entity practice {
     id: UUID
+    name: VARCHAR
     deadline: TIMESTAMP
     deadline_type: ENUM/VARCHAR
     course_id: UUID
+    task_id: UUID
 }
 
 entity attempt {
+    id: UUID
     status: ENUM/VARCHAR
     passed_count: INTEGER
     linter_score: INTEGER
@@ -45,6 +48,8 @@ entity attempt {
     practice_id: UUID
     user_id: UUID
     task_id: UUID
+    submission_ids: ARRAY[UUID]
+    sent_time: TIMESTAMP
 }
 
 entity language {
@@ -67,5 +72,6 @@ practice }o-- course
 user ||--|| task
 language ||--o{ language_permission
 language_permission }o--|| practice
+task ||--o{ practice
 
 @enduml
