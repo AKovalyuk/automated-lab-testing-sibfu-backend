@@ -14,7 +14,7 @@ class AuthenticationOut(BaseModel):
 
 class PasswordUpdate(BaseModel):
     old_password: str
-    new_password: str
+    new_password: str = Field(max_length=25)
 
 
 class RegistrationRequest(BaseModel):

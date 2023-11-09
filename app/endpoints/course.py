@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Body, Depends, Query
 from starlette import status
 
-from app.schemas.course import CourseOut, CourseIn, ParticipationOut, ParticipationIn
+from app.schemas.course import CourseOut, CourseIn, ParticipationOut, ParticipationIn, Summary
 from app.dependencies.pagination import pagination_dependency, Pagination
 
 
@@ -133,5 +133,19 @@ async def delete_participation(
 ):
     """
     Remove student's participation from course
+    """
+    pass
+
+
+@router.get(
+    path='/{course_id}/summary',
+    status_code=status.HTTP_200_OK,
+    response_model=list[Summary],
+)
+async def summary(
+        course_id: Annotated[UUID, Path()],
+) -> list[Summary]:
+    """
+    Get summary about students
     """
     pass

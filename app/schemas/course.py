@@ -27,3 +27,18 @@ class ParticipationOut(ParticipationIn):
     username: str
     display_name: str
     email: str
+
+
+class Summary(BaseModel):
+    task_id: UUID
+    task_name: str
+    practice_id: UUID
+    practice_name: str
+    username: str
+    display_name: str
+    total_tests: int
+    best_tests_passed: int
+    best_attempt_time: datetime
+    last_attempt_time: datetime
+    attempt_count: int
+    attempt_count_before_best: int
