@@ -1,5 +1,5 @@
 from .user import UserOut, UserIn
-from .auth import AuthenticationIn, AuthenticationOut
+from .auth import AuthenticationIn, AuthenticationOut, PasswordUpdate, RegistrationRequest
 from .course import CourseIn, CourseOut, ParticipationOut, ParticipationIn
 from .task import TaskIn, TaskOut, Test
 from .practice import PracticeIn, PracticeOut
