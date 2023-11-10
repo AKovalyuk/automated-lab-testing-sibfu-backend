@@ -55,6 +55,7 @@ entity submission {
     id: INTEGER
     runner_id: UUID
     attempt_id: UUID
+    test_number: INTEGER
 }
 
 entity language {
