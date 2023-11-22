@@ -103,7 +103,8 @@ async def get_registration_requests(
     status_code=status.HTTP_200_OK,
 )
 async def accept_or_decline_registration_request(
-        reg_request_id: Annotated[UUID, Path()],):
+        reg_request_id: Annotated[UUID, Path()],
+):
     """
     Accept or decline teacher registration request (Only for admin)
     """
