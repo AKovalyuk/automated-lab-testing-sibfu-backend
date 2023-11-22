@@ -14,5 +14,5 @@ class UserIn(UserBase):
     password: str
 
 
-class UserOut(BaseModel):
+class UserOut(UserBase):
     id: UUID

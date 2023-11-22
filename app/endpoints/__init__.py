@@ -6,6 +6,7 @@ from .task import router as task_router
 from .practice import router as practice_router
 from .language import router as lang_router
 from .attempt import router as attempt_router
+from .callback_server import router as callback_server_router
 
 
 routers = [

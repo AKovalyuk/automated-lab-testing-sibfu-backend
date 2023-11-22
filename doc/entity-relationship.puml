@@ -48,8 +48,14 @@ entity attempt {
     practice_id: UUID
     user_id: UUID
     task_id: UUID
-    submission_ids: ARRAY[UUID]
     sent_time: TIMESTAMP
+}
+
+entity submission {
+    id: INTEGER
+    runner_id: UUID
+    attempt_id: UUID
+    test_number: INTEGER
 }
 
 entity language {
@@ -73,5 +79,6 @@ user ||--|| task
 language ||--o{ language_permission
 language_permission }o--|| practice
 task ||--o{ practice
+submission }|--|| attempt
 
 @enduml
