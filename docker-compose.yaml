@@ -44,7 +44,7 @@ services:
       - runner-server
 
   app-db:
-    image: postgres:latest
+    image: postgres:16
     container_name: app-db
     volumes:
       - app-postgres-data:/var/lib/postgresql/data/
@@ -83,7 +83,7 @@ services:
 
   runner-db:
     container_name: runner-db
-    image: postgres:latest
+    image: postgres:16
     env_file: runner/judge0.conf
     volumes:
       - runner-postgres-data:/var/lib/postgresql/data/
@@ -93,7 +93,7 @@ services:
 
   runner-redis:
     container_name: runner-redis
-    image: redis:latest
+    image: redis:7
     command: [
       "bash", "-c", 'docker-entrypoint.sh --appendonly yes --requirepass "$$REDIS_PASSWORD"'
     ]
