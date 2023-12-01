@@ -1,4 +1,5 @@
 version: '3'
+# TODO AUTH
 
 services:
   app:
@@ -22,6 +23,16 @@ services:
     depends_on:
       - app-db
       - runner-server
+      - app-kw
+
+  app-redis:
+    container_name: app-kw
+    image: redis:7
+    volumes:
+      - app-redis-data:/data
+    restart: always
+    networks:
+      - net
 
   callback-server:
     container_name: callback-server
@@ -108,6 +119,7 @@ volumes:
   runner-postgres-data:
   app-postgres-data:
   redis-data:
+  app-redis-data:
 
 networks:
   net:
