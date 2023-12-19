@@ -18,5 +18,9 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = int(getenv('POSTGRES_PORT', 5432))
     POSTGRES_HOST: str = getenv('POSTGRES_HOST', 'app-db')
 
+    # Redis
+    REDIS_HOST: str = getenv('REDIS_HOST', 'app-redis')
+    REDIS_PORT: int = int(getenv('REDIS_PORT', 6379))
+
 
 settings = Settings()

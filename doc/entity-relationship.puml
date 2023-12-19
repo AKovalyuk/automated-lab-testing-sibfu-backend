@@ -37,6 +37,7 @@ entity practice {
     deadline_type: ENUM/VARCHAR
     course_id: UUID
     task_id: UUID
+    practice_no: INTEGER
 }
 
 entity attempt {

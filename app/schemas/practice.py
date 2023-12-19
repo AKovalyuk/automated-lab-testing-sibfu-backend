@@ -13,6 +13,7 @@ class PracticeIn(BaseModel):
     name: str = Field(max_length=100)
     task_id: UUID
     languages: list[int]  # available lang ids
+    practice_no: int
 
 
 class PracticeOut(BaseModel):
@@ -22,3 +23,4 @@ class PracticeOut(BaseModel):
     name: str = Field(max_length=100)
     task_id: UUID
     languages: list[Language]
+    practice_no: int
