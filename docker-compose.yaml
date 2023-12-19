@@ -23,10 +23,10 @@ services:
     depends_on:
       - app-db
       - runner-server
-      - app-kw
+      - app-redis
 
   app-redis:
-    container_name: app-kw
+    container_name: app-redis
     image: redis:7
     volumes:
       - app-redis-data:/data
