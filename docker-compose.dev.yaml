@@ -1,0 +1,128 @@
+version: '3'
+# TODO AUTH
+
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      args:
+        APP_WORKDIR: "/app"
+    volumes:
+      # For autoreload
+      - .:/app:ro
+      - /app/.venv
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    env_file:
+      - .env
+    restart: always
+    command: poetry run uvicorn app.__main__:app --host 0.0.0.0 --port ${APP_PORT} --reload
+    networks:
+      - net
+    depends_on:
+      - app-db
+      - runner-server
+      - app-redis
+
+  app-redis:
+    container_name: app-redis
+    image: redis:7
+    volumes:
+      - app-redis-data:/data
+    restart: always
+    networks:
+      - net
+
+  callback-server:
+    container_name: callback-server
+    build:
+      context: .
+      args:
+        APP_WORKDIR: "/app"
+    volumes:
+      # For autoreload
+      - .:/app:ro
+      - /app/.venv
+    env_file:
+      - .env
+    restart: always
+    command: poetry run uvicorn app.callback_server:app --host 0.0.0.0 --port ${APP_PORT} --reload
+    networks:
+      - net
+    depends_on:
+      - app-db
+      - runner-server
+
+  app-db:
+    image: postgres:16
+    container_name: app-db
+    volumes:
+      - app-postgres-data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+    networks:
+      - net
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    restart: always
+
+  runner-server:
+    image: runner-service
+    container_name: runner-server
+    volumes:
+      - ./runner/judge0.conf:/api/judge0.conf:ro
+    privileged: true
+    restart: always
+    command: ['./scripts/server']
+    depends_on:
+      - worker
+    networks:
+      - net
+
+  worker:
+    image: runner-service
+    container_name: worker
+    command: ['./scripts/workers']
+    volumes:
+      - ./runner/judge0.conf:/api/judge0.conf:ro
+    privileged: true
+    restart: always
+    depends_on:
+      - runner-db
+      - runner-redis
+    networks:
+      - net
+
+  runner-db:
+    container_name: runner-db
+    image: postgres:16
+    env_file: runner/judge0.conf
+    volumes:
+      - runner-postgres-data:/var/lib/postgresql/data/
+    restart: always
+    networks:
+      - net
+
+  runner-redis:
+    container_name: runner-redis
+    image: redis:7
+    command: [
+      "bash", "-c", 'docker-entrypoint.sh --appendonly yes --requirepass "$$REDIS_PASSWORD"'
+    ]
+    env_file: runner/judge0.conf
+    volumes:
+      - redis-data:/data
+    restart: always
+    networks:
+      - net
+
+volumes:
+  runner-postgres-data:
+  app-postgres-data:
+  redis-data:
+  app-redis-data:
+
+networks:
+  net:
+    driver: bridge

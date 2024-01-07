@@ -22,5 +22,12 @@ class Settings(BaseSettings):
     REDIS_HOST: str = getenv('REDIS_HOST', 'app-redis')
     REDIS_PORT: int = int(getenv('REDIS_PORT', 6379))
 
+    def get_db_url(self) -> str:
+        return (f'postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}'
+                f'@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}')
+
+    def get_db_url_for_migration(self) -> str:
+        return (f'postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}'
+                f'@localhost:{self.POSTGRES_PORT}/{self.POSTGRES_DB}')
 
 settings = Settings()
