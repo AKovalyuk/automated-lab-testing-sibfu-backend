@@ -47,7 +47,7 @@ services:
     env_file:
       - .env
     restart: always
-    command: poetry run uvicorn app.callback_server:app --host 0.0.0.0 --port ${APP_PORT} --reload
+    command: ./run
     networks:
       - net
     depends_on:

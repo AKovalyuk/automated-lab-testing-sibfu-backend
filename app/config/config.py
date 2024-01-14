@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = getenv('POSTGRES_USER', 'user')
     POSTGRES_PASSWORD: str = getenv('POSTGRES_PASSWORD', '12345')
     POSTGRES_PORT: int = int(getenv('POSTGRES_PORT', 5432))
-    POSTGRES_HOST: str = getenv('POSTGRES_HOST', 'app-db')
+    POSTGRES_HOST: str = getenv('POSTGRES_HOST', 'localhost')  # By default - localhost (for migration)
 
     # Redis
     REDIS_HOST: str = getenv('REDIS_HOST', 'app-redis')
@@ -26,8 +26,5 @@ class Settings(BaseSettings):
         return (f'postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}'
                 f'@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}')
 
-    def get_db_url_for_migration(self) -> str:
-        return (f'postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}'
-                f'@localhost:{self.POSTGRES_PORT}/{self.POSTGRES_DB}')
 
 settings = Settings()
