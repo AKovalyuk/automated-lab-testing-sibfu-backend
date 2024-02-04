@@ -1,5 +1,4 @@
 version: '3'
-# TODO AUTH
 
 services:
   app:
@@ -9,17 +8,16 @@ services:
       args:
         APP_WORKDIR: "/app"
     volumes:
-      # For autoreload
-      - .:/app:ro
-      - /app/.venv
+      - ./app:/app/app:ro
+      - ./tests:/app/tests:ro
     ports:
       - "${APP_PORT}:${APP_PORT}"
     env_file:
       - .env
+    environment:
+      - DOCKER=1
     restart: always
     command: poetry run uvicorn app.__main__:app --host 0.0.0.0 --port ${APP_PORT} --reload
-    networks:
-      - net
     depends_on:
       - app-db
       - runner-server
@@ -31,8 +29,6 @@ services:
     volumes:
       - app-redis-data:/data
     restart: always
-    networks:
-      - net
 
   callback-server:
     container_name: callback-server
@@ -41,28 +37,21 @@ services:
       args:
         APP_WORKDIR: "/app"
     volumes:
-      # For autoreload
-      - .:/app:ro
-      - /app/.venv
+      - ./app:/app/app:ro
     env_file:
       - .env
     restart: always
     command: ./run
-    networks:
-      - net
     depends_on:
-      - app-db
-      - runner-server
+      - app
 
   app-db:
     image: postgres:16
     container_name: app-db
     volumes:
-      - app-postgres-data:/var/lib/postgresql/data/
+      - ./data:/var/lib/postgresql/data
     env_file:
       - .env
-    networks:
-      - net
     restart: always
 
   runner-server:
@@ -75,8 +64,6 @@ services:
     command: ['./scripts/server']
     depends_on:
       - worker
-    networks:
-      - net
 
   worker:
     image: runner-service
@@ -89,8 +76,6 @@ services:
     depends_on:
       - runner-db
       - runner-redis
-    networks:
-      - net
 
   runner-db:
     container_name: runner-db
@@ -99,8 +84,6 @@ services:
     volumes:
       - runner-postgres-data:/var/lib/postgresql/data/
     restart: always
-    networks:
-      - net
 
   runner-redis:
     container_name: runner-redis
@@ -112,15 +95,8 @@ services:
     volumes:
       - redis-data:/data
     restart: always
-    networks:
-      - net
 
 volumes:
   runner-postgres-data:
-  app-postgres-data:
   redis-data:
   app-redis-data:
-
-networks:
-  net:
-    driver: bridge
