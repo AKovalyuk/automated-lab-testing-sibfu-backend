@@ -2,11 +2,13 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Path, Depends
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from starlette import status
+from fastapi_mail import FastMail, MessageSchema, MessageType
 
 from app.schemas import UserIn, AuthenticationIn, AuthenticationOut, PasswordUpdate, RegistrationRequest
 from app.dependencies import pagination_dependency, Pagination
+from app.config import mail_config
 
 
 router = APIRouter(prefix='', tags=['Authentication'])
@@ -14,13 +16,19 @@ router = APIRouter(prefix='', tags=['Authentication'])
 
 @router.post(
     path='/registration',
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=status.HTTP_200_OK,
 )
 async def register_user(user_data: Annotated[UserIn, Body()]):
-    """
-    Register user in service (send email)
-    """
-    pass
+    #raise Exception(mail_config)
+    email_message = MessageSchema(
+        subject="Registration",
+        recipients=[user_data.email],
+        body="Welcome to",
+        subtype=MessageType.plain,
+    )
+    fm = FastMail(mail_config)
+    await fm.send_message(email_message)
+    return Response(status_code=status.HTTP_200_OK)
 
 
 @router.get(

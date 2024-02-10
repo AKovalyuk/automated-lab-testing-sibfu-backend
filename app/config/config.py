@@ -1,11 +1,16 @@
 from os import getenv
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from fastapi_mail import ConnectionConfig
 
 
 class Settings(BaseSettings):
 
-    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+    model_config = SettingsConfigDict(
+        env_file='.env',
+        env_file_encoding='utf-8',
+        extra='ignore',
+    )
 
     # Service settings
     APP_PORT: int = int(getenv('APP_PORT', 8000))
@@ -39,3 +44,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+mail_config = ConnectionConfig(_env_file='.env', _env_file_encoding='utf-8', _env_prefix='M_')
