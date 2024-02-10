@@ -5,10 +5,10 @@ build_service:
 	docker build -t runner-service ./runner/service
 
 dev:
-	docker compose -f docker-compose.dev.yaml up
+	docker compose up
 
 api-only:
-	docker compose -f docker-compose.dev.yaml up app app-db app-redis --no-deps
+	docker compose up app app-db app-redis --no-deps
 
 prod:
 	docker compose -f docker-compose.prod.yaml up

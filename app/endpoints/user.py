@@ -21,10 +21,13 @@ async def get_user(
         user_id: Annotated[UUID, Path()],
         user: Annotated[User, Depends(auth_dependency)],
 ) -> UserOut:
-    """
-    Get user info by id
-    """
-    pass
+    return UserOut(
+        id=user_id,
+        username=user.username,
+        display_name=user.display_name,
+        is_teacher=user.is_teacher,
+        email=user.email,
+    )
 
 
 @router.patch(
