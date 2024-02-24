@@ -82,3 +82,74 @@ async def test_authenticate_user_bad_header_api(client, user_fixture, header_val
         }
     )
     assert response.status_code == 400
+
+
+async def test_register_user(client, session):
+    data = {
+        'username': 'abcd',
+        'display_name': 'Petya',
+        'is_teacher': False,
+        'email': 'user@example.com',
+    }
+    response = await client.post(
+        url=f'{settings.PATH_PREFIX}/registration',
+        json=data | {'password': '123'}
+    )
+    assert response.status_code == 200
+    user_in_db = await session.scalar(select(User).filter(User.username == data['username']))
+    for field in data:
+        assert getattr(user_in_db, field) == data[field]
+
+
+async def test_duplicate_username(client, session):
+    data1 = {
+        'username': 'abcd',
+        'display_name': 'Petya',
+        'is_teacher': False,
+        'email': 'user1@example.com',
+        'password': '123',
+    }
+    data2 = {
+        'username': 'abcd',
+        'display_name': 'Petya',
+        'is_teacher': False,
+        'email': 'user2@example.com',
+        'password': '123',
+    }
+    response = await client.post(
+        url=f'{settings.PATH_PREFIX}/registration',
+        json=data1,
+    )
+    assert response.status_code == 200
+    response = await client.post(
+        url=f'{settings.PATH_PREFIX}/registration',
+        json=data2,
+    )
+    assert response.status_code == 409
+
+
+async def test_duplicate_email(client, session):
+    data1 = {
+        'username': 'abcd',
+        'display_name': 'Petya',
+        'is_teacher': False,
+        'email': 'user@example.com',
+        'password': '123',
+    }
+    data2 = {
+        'username': 'abcde',
+        'display_name': 'Petya',
+        'is_teacher': False,
+        'email': 'user@example.com',
+        'password': '123',
+    }
+    response = await client.post(
+        url=f'{settings.PATH_PREFIX}/registration',
+        json=data1,
+    )
+    assert response.status_code == 200
+    response = await client.post(
+        url=f'{settings.PATH_PREFIX}/registration',
+        json=data2,
+    )
+    assert response.status_code == 409

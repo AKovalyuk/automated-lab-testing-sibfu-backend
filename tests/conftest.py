@@ -28,17 +28,6 @@ pytest_plugins = [
 environ["ENV"] = "test"
 
 
-# @pytest.fixture(scope="session")
-# def event_loop():
-#     """
-#     Creates event loop for tests.
-#     """
-#     policy = get_event_loop_policy()
-#     loop = policy.new_event_loop()
-#     yield loop
-#     loop.close()
-
-
 @pytest.fixture()
 def postgres() -> str:
     """

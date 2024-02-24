@@ -2,6 +2,7 @@ from os import getenv
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi_mail import ConnectionConfig
+from redis import Redis
 
 
 class Settings(BaseSettings):
@@ -26,9 +27,13 @@ class Settings(BaseSettings):
     # Redis
     REDIS_HOST: str = getenv('REDIS_HOST', 'app-redis')
     REDIS_PORT: int = int(getenv('REDIS_PORT', 6379))
+    REDIS_DB: int = int(getenv('REDIS_DB', 0))
 
     # In Docker?
     DOCKER: bool = bool(getenv('DOCKER', 0))
+
+    # Hostname
+    HOST: str = getenv('HOST', 'http://localhost:8000')
 
     def get_db_url(self) -> str:
         if self.DOCKER:
@@ -45,3 +50,8 @@ class Settings(BaseSettings):
 
 settings = Settings()
 mail_config = ConnectionConfig(_env_file='.env', _env_file_encoding='utf-8', _env_prefix='M_')
+redis = Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=0,
+)
