@@ -3,9 +3,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Path, Body, Depends, Query
 from starlette import status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.course import CourseOut, CourseIn, ParticipationOut, ParticipationIn, Summary
 from app.dependencies.pagination import pagination_dependency, Pagination
+from app.db import get_session
 
 
 router = APIRouter(
@@ -45,7 +47,10 @@ async def get_courses(
     response_model=CourseOut,
     status_code=status.HTTP_201_CREATED,
 )
-async def create_course(course_data: Annotated[CourseIn, Body()]) -> CourseOut:
+async def create_course(
+    course_data: Annotated[CourseIn, Body()],
+    session: Annotated[AsyncSession, Depends(get_session)]
+) -> CourseOut:
     """
     Endpoint for course creation
     """

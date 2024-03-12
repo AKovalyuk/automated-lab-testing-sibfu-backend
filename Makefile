@@ -1,7 +1,7 @@
-build_compilers:
+build-compilers:
 	docker build -t runner-compilers ./runner/compilers
 
-build_service:
+build-service:
 	docker build -t runner-service ./runner/service
 
 dev:
