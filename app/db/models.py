@@ -39,4 +39,5 @@ class Course(Base):
     description: Mapped[str] = mapped_column()
     participants: Mapped[List[User]] = relationship(
         secondary=Participation.__table__, back_populates='courses',
+        lazy='selectin',
     )
