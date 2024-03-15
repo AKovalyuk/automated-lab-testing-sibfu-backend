@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from uuid import UUID, uuid4
 
@@ -41,3 +42,15 @@ class Course(Base):
         secondary=Participation.__table__, back_populates='courses',
         lazy='selectin',
     )
+    practices: Mapped["Practice"] = relationship(back_populates='course')
+
+
+class Practice(Base):
+    __tablename__ = 'practice'
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    name: Mapped[str] = mapped_column(String(100))
+    deadline: Mapped[datetime] = mapped_column()
+    soft_deadline: Mapped[datetime] = mapped_column()
+    course_id: Mapped[UUID] = mapped_column(ForeignKey('course.id'))
+    practice_no: Mapped[int] = mapped_column()
+    course: Mapped["Course"] = relationship(back_populates='practices')
