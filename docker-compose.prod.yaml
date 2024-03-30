@@ -1,5 +1,3 @@
-# Dev version of docker-compose
-
 version: '3'
 
 services:
@@ -19,7 +17,7 @@ services:
     environment:
       - DOCKER=1
     restart: always
-    command: ./run
+    command: poetry run uvicorn app.__main__:app --host 0.0.0.0 --port ${APP_PORT} --reload
     depends_on:
       - app-db
       - runner-server
@@ -43,7 +41,7 @@ services:
     env_file:
       - .env
     restart: always
-    command: poetry run uvicorn app.callback_server:app --host 0.0.0.0 --port ${APP_PORT} --reload
+    command: ./run
     depends_on:
       - app
 
@@ -54,8 +52,6 @@ services:
       - ./data:/var/lib/postgresql/data
     env_file:
       - .env
-    ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     restart: always
 
   runner-server:

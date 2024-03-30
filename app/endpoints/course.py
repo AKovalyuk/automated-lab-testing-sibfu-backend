@@ -1,12 +1,16 @@
 from uuid import UUID
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Body, Depends, Query
+from fastapi import APIRouter, Path, Body, Depends, Query, HTTPException
 from starlette import status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, delete
 
+from app.dependencies import auth_dependency
 from app.schemas.course import CourseOut, CourseIn, ParticipationOut, ParticipationIn, Summary
 from app.dependencies.pagination import pagination_dependency, Pagination
-
+from app.db import get_session, Course, User, Participation
+from app.utils import get_course_permission, CoursePermission, is_participant
 
 router = APIRouter(
     prefix='/course',
@@ -19,11 +23,28 @@ router = APIRouter(
     response_model=CourseOut,
     status_code=status.HTTP_200_OK,
 )
-async def get_course(course_id: Annotated[UUID, Path()]) -> CourseOut:
+async def get_course(
+    user: Annotated[User, Depends(auth_dependency)],
+    course_id: Annotated[UUID, Path()],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> CourseOut:
     """
     Get course by id
     """
-    pass
+    course_in_db = await session.get(Course, ident=course_id)
+
+    # Check course exists
+    if course_in_db is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    # Check permission
+    if (await get_course_permission(course_in_db, user, session) in
+            (CoursePermission.WRITE, CoursePermission.READ)):
+        return CourseOut(
+            id=course_in_db.id,
+            name=course_in_db.name,
+            description=course_in_db.description,
+        )
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
 @router.get(
@@ -32,12 +53,30 @@ async def get_course(course_id: Annotated[UUID, Path()]) -> CourseOut:
     status_code=status.HTTP_200_OK,
 )
 async def get_courses(
-        pagination: Annotated[Pagination, Depends(pagination_dependency)],
+    user: Annotated[User, Depends(auth_dependency)],
+    pagination: Annotated[Pagination, Depends(pagination_dependency)],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ) -> list[CourseOut]:
+    # TODO pagination
     """
-    List courses with pagination
+    Get user's courses
     """
-    pass
+    if user.is_teacher:
+        results = await session.scalars(
+            select(Course)
+        )
+    else:
+        results = await session.scalars(
+            # TODO SELECT DISTINCT?
+            select(Course).join(Participation).where(Participation.user_id == user.id)
+        )
+    return [
+        CourseOut(
+            id=course.id,
+            name=course.name,
+            description=course.description,
+        ) for course in results
+    ]
 
 
 @router.post(
@@ -45,51 +84,101 @@ async def get_courses(
     response_model=CourseOut,
     status_code=status.HTTP_201_CREATED,
 )
-async def create_course(course_data: Annotated[CourseIn, Body()]) -> CourseOut:
+async def create_course(
+    user: Annotated[User, Depends(auth_dependency)],
+    course_data: Annotated[CourseIn, Body()],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> CourseOut:
     """
-    Endpoint for course creation
+    Only teachers can create new courses
     """
-    pass
+    if user.is_teacher:
+        new_course = Course(name=course_data.name, description=course_data.description)
+        session.add(new_course)
+        await session.flush()
+        session.add(Participation(user_id=user.id, course_id=new_course.id))
+        await session.commit()
+        return CourseOut(
+            id=new_course.id,
+            name=new_course.name,
+            description=new_course.description,
+        )
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
-@router.patch(
+@router.put(
     path='/{course_id}',
     response_model=CourseOut,
     status_code=status.HTTP_200_OK,
 )
 async def edit_course(
-        course_id: Annotated[UUID, Path()],
-        course_data: Annotated[CourseIn, Body()]
+    user: Annotated[User, Depends(auth_dependency)],
+    course_id: Annotated[UUID, Path()],
+    course_data: Annotated[CourseIn, Body()],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ) -> CourseOut:
-    """
-    Endpoint for course edit
-    """
-    pass
+    course = await session.get(Course, ident=course_id)
+
+    # Check course exists
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    # Check permission
+    if await get_course_permission(course, user, session) == CoursePermission.WRITE:
+        course.description = course_data.description
+        course.name = course_data.name
+        await session.commit()
+        return CourseOut(id=course.id, name=course.name, description=course.description)
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
 @router.delete(
     path='/{course_id}',
     status_code=status.HTTP_204_NO_CONTENT,
 )
-async def delete_course(course_id: Annotated[UUID, Path()]):
+async def delete_course(
+    course_id: Annotated[UUID, Path()],
+    user: Annotated[User, Depends(auth_dependency)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+):
     """
-    Delete course endpoint
+    Delete course endpoint (allowed only for teacher, participated in course)
     """
-    pass
+    course = await session.get(Course, ident=course_id)
+    if course:
+        if user.is_teacher and await is_participant(course, user, session):
+            await session.delete(course)
+            await session.commit()
+            return
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-@router.put(
+@router.patch(
     path='/{course_id}/participation',
     status_code=status.HTTP_200_OK,
 )
 async def course_participation_request(
-        course_id: Annotated[UUID, Path()],
+    course_id: Annotated[UUID, Path()],
+    user: Annotated[User, Depends(auth_dependency)],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ):
     """
     Participation in course
     (PATCH method used for idempotency)
     """
-    pass
+    course = await session.get(Course, ident=course_id)
+    # Check exists
+    if not course:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    participation = await session.scalar(
+        select(Participation).
+        where(Participation.course_id == course_id).
+        where(Participation.user_id == user.id)
+    )
+    if not participation:
+        session.add(Participation(user_id=user.id, course_id=course_id, is_request=True))
+        await session.commit()
 
 
 @router.get(
@@ -99,42 +188,62 @@ async def course_participation_request(
 )
 async def get_participation(
         course_id: Annotated[UUID, Path()],
+        user: Annotated[User, Depends(auth_dependency)],
+        session: Annotated[AsyncSession, Depends(get_session)],
+        pagination: Annotated[Pagination, Depends(pagination_dependency)],
 ) -> list[ParticipationOut]:
-    """
-    Get participants (students) for this course
-    """
-    pass
+    course = await session.get(Course, ident=course_id)
+    if not user.is_teacher:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    if course:
+        results = await session.execute(
+            select(User.__table__.c, Participation.is_request.label('is_request')).
+            join(Participation).
+            where(Participation.course_id == course_id).
+            limit(pagination.size).
+            offset(pagination.size * (pagination.page - 1))
+        )
+        return [
+            ParticipationOut(**result) for result in results.mappings()
+        ]
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
 @router.patch(
-    path='/{course_id}/participation',
+    path='/{course_id}/participation_update',
     status_code=status.HTTP_200_OK,
 )
 async def update_participation(
         course_id: Annotated[UUID, Path()],
         participation_data: list[ParticipationIn],
-) -> list[ParticipationOut]:
-    """
-    Change list of course participants
-    """
-    pass
-
-
-@router.delete(
-    path='/{course_id}/participation',
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-async def delete_participation(
-        course_id: Annotated[UUID, Path()],
-        remove_progress: Annotated[bool, Query(
-            description="Delete participation with student's progress?"
-        )],
-        delete_ids: Annotated[list[UUID], Body()],
+        user: Annotated[User, Depends(auth_dependency)],
+        session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    """
-    Remove student's participation from course
-    """
-    pass
+    course = await session.get(Course, ident=course_id)
+    if not course:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    if user.is_teacher and await is_participant(course, user, session):
+        approve_ids = [
+            command.user_id for command in participation_data if command.status == "approve"
+        ]
+        remove_ids = [
+            command.user_id for command in participation_data if command.status == "remove"
+        ]
+        await session.execute(
+            update(Participation).
+            where(Participation.course_id == course_id).
+            where(Participation.user_id.in_(approve_ids)).
+            values(is_request=False)
+        )
+        await session.execute(
+            delete(Participation).
+            where(Participation.course_id == course_id).
+            where(Participation.user_id.in_(remove_ids))
+        )
+        await session.commit()
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
 @router.get(

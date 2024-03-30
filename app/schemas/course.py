@@ -2,7 +2,7 @@ from uuid import UUID
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class CourseIn(BaseModel):
@@ -15,18 +15,21 @@ class CourseOut(CourseIn):
 
 
 class ParticipationIn(BaseModel):
-    id: UUID
+    user_id: UUID
     status: Literal[
-        "participant",
-        "admin",
-        "requestor",
+        "approve",
+        "remove",
     ]
 
 
-class ParticipationOut(ParticipationIn):
+class ParticipationOut(BaseModel):
     username: str
     display_name: str
     email: str
+    is_teacher: bool
+    is_request: bool
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Summary(BaseModel):

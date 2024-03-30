@@ -34,7 +34,7 @@ WORKDIR /api
 
 COPY active.rb db/languages/active.rb
 
-RUN RAILS_ENV=production bundle
+ENV RAILS_ENV 'production bundle'
 
 
 RUN cp cron /etc/cron.d -r && cat /etc/cron.d/* | crontab -

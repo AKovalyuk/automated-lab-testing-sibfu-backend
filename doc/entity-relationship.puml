@@ -76,8 +76,9 @@ attempt }o--|| practice
 user ||--o{ participation
 participation }o--|| course
 practice }o-- course
-user ||--|| task
+user ||--o{ task
 language ||--o{ language_permission
+language ||--o{ attempt
 language_permission }o--|| practice
 task ||--o{ practice
 submission }|--|| attempt
