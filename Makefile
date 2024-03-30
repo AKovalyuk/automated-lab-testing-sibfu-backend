@@ -22,5 +22,8 @@ env:
 test:
 	docker compose exec -it app poetry run python -m pytest -vv --showlocals --log-level=DEBUG --full-trace
 
+test-lf:
+	docker compose exec -it app poetry run python -m pytest -vv --showlocals --log-level=DEBUG --full-trace --lf
+
 connect-db:
 	docker compose exec -it app-db psql -U user -d db

@@ -1,8 +1,9 @@
 from uuid import uuid4
+from time import time
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, inspect
 
 from app.config import settings
 from app.db import User, Course, Participation
@@ -14,7 +15,7 @@ async def create_test_user(session: AsyncSession, is_teacher=False):
     user = await create_user(
         session=session,
         password=password,
-        username="test_user",
+        username=f"test_user_{int(time() * 1000)}",
         display_name="test_display_name",
         is_teacher=is_teacher,
         is_admin=False,
@@ -187,3 +188,252 @@ async def test_create_course_by_student(client, session):
         }
     )
     assert response.status_code in (400, 403)
+
+
+async def test_update_course_by_teacher_participant(client, session):
+    user, password = await create_test_user(session, is_teacher=True)
+    course = await create_test_course(session)
+    participation = Participation(course_id=course.id, user_id=user.id)
+    session.add(participation)
+    await session.commit()
+
+    response = await client.put(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}",
+        headers={
+            "Authorization": get_user_authorization_header(user, password),
+        },
+        json={
+            "name": "Test Course",
+            "description": "...",
+        },
+    )
+    assert response.status_code == 200
+
+
+async def test_update_course_by_teacher_not_participant(client, session):
+    user, password = await create_test_user(session, is_teacher=True)
+    course = await create_test_course(session)
+
+    response = await client.put(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}",
+        headers={
+            "Authorization": get_user_authorization_header(user, password),
+        },
+        json={
+            "name": "Test Course",
+            "description": "...",
+        },
+    )
+    assert response.status_code == 403
+
+
+async def test_update_course_by_student_participant(client, session):
+    user, password = await create_test_user(session, is_teacher=False)
+    course = await create_test_course(session)
+    participation = Participation(course_id=course.id, user_id=user.id)
+    session.add(participation)
+    await session.commit()
+
+    response = await client.put(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}",
+        headers={
+            "Authorization": get_user_authorization_header(user, password),
+        },
+        json={
+            "name": "Test Course",
+            "description": "...",
+        },
+    )
+    assert response.status_code == 403
+
+
+async def test_update_course_not_exists(client, session):
+    user, password = await create_test_user(session, is_teacher=True)
+
+    response = await client.put(
+        url=f"{settings.PATH_PREFIX}/course/{uuid4()}",
+        headers={
+            "Authorization": get_user_authorization_header(user, password),
+        },
+        json={
+            "name": "Test Course",
+            "description": "...",
+        },
+    )
+    assert response.status_code == 404
+
+
+async def test_delete_course_ok(client, session):
+    user, password = await create_test_user(session, is_teacher=True)
+    course = await create_test_course(session)
+    participation = Participation(course_id=course.id, user_id=user.id)
+    session.add(participation)
+    await session.commit()
+    course_id = course.id
+
+    response = await client.delete(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}",
+        headers={
+            "Authorization": get_user_authorization_header(user, password),
+        },
+    )
+    assert response.status_code in (200, 204)
+    assert list(await session.execute(
+        select(Course.id).where(Course.id == course_id)
+    )).__len__() == 0
+    assert list(await session.execute(
+        select(Participation.course_id).
+        where(Participation.course_id == course_id).
+        where(Participation.user_id == user.id)
+    )).__len__() == 0
+
+
+async def test_delete_course_no_permission(client, session):
+    user, password = await create_test_user(session, is_teacher=False)
+    course = await create_test_course(session)
+    participation = Participation(course_id=course.id, user_id=user.id)
+    session.add(participation)
+    await session.commit()
+
+    response = await client.delete(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}",
+        headers={
+            "Authorization": get_user_authorization_header(user, password),
+        }
+    )
+    assert response.status_code == 403
+
+
+async def test_participation_request_once(client, session):
+    user, password = await create_test_user(session, is_teacher=False)
+    course = await create_test_course(session)
+
+    response = await client.patch(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}/participation",
+        headers={
+            "Authorization": get_user_authorization_header(user, password),
+        }
+    )
+    assert response.status_code == 200
+    assert await session.scalar(
+        select(Participation).
+        where(Participation.course_id == course.id).
+        where(Participation.user_id == user.id)
+    )
+
+
+async def test_participation_request_multiple(client, session):
+    user, password = await create_test_user(session, is_teacher=False)
+    course = await create_test_course(session)
+
+    for _ in range(3):
+        response = await client.patch(
+            url=f"{settings.PATH_PREFIX}/course/{course.id}/participation",
+            headers={
+                "Authorization": get_user_authorization_header(user, password),
+            }
+        )
+        assert response.status_code == 200
+    participation_object = await session.scalar(
+        select(Participation).
+        where(Participation.course_id == course.id).
+        where(Participation.user_id == user.id)
+    )
+    assert participation_object.is_request
+
+
+@pytest.mark.parametrize(
+    "page, page_size, request_count, participant_count, excepted_count",
+    [
+        (1, 10, 3, 5, 8),
+        (2, 10, 3, 5, 0),
+        (4, 3, 0, 10, 1),
+    ]
+
+)
+async def test_get_participation(
+        client, session,
+        page, page_size, request_count, participant_count, excepted_count
+):
+    course = await create_test_course(session)
+    users = []
+    teacher_user, teacher_password = await create_test_user(session, is_teacher=True)
+    for i in range(request_count + participant_count):
+        user, password = await create_test_user(session)
+        users.append((user, password))
+        session.add(
+            Participation(user_id=user.id, course_id=course.id, is_request=i < request_count)
+        )
+    await session.commit()
+
+    response = await client.get(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}/participation",
+        params={"page": page, "size": page_size},
+        headers={
+            "Authorization": get_user_authorization_header(teacher_user, teacher_password),
+        }
+    )
+    assert len(response.json()) == excepted_count
+
+
+async def test_change_update_participation_not_found(client, session):
+    user, password = await create_test_user(session, is_teacher=True)
+    course = await create_test_course(session)
+
+    response = await client.patch(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}/participation",
+        headers={
+            "Authorization": get_user_authorization_header(user, password),
+        },
+        json=[
+            {"user_id": str(uuid4()), "status": "approve"},
+            {"user_id": str(uuid4()), "status": "remove"},
+        ]
+    )
+    assert response.status_code == 200
+
+
+async def test_change_update_participation_cross_table(client, session):
+    participants = [await create_test_user(session) for _ in range(4)]
+    course = await create_test_course(session)
+    teacher, teacher_password = await create_test_user(session, is_teacher=True)
+    participation = Participation(user_id=teacher.id, course_id=course.id)
+    participations = [
+        Participation(
+            user_id=participants[i][0].id,
+            course_id=course.id,
+            is_request=i < 2,
+        )
+        for i in range(4)
+    ]
+    session.add_all(participations + [participation])
+    await session.commit()
+
+    response = await client.patch(
+        url=f"{settings.PATH_PREFIX}/course/{course.id}/participation_update",
+        headers={
+            "Authorization": get_user_authorization_header(teacher, teacher_password),
+        },
+        json=[
+            {
+                "user_id": str(participants[i][0].id), "status":
+                "approve" if i % 2 == 0 else "remove"
+            }
+            for i in range(4)
+        ]
+    )
+    assert response.status_code == 200
+    for i, t in enumerate(participants):
+        user, _ = t
+        if i % 2 == 0:
+            assert not (await session.execute(
+                select(Participation.is_request).
+                where(Participation.course_id == course.id).
+                where(Participation.user_id == user.id)
+            )).scalar_one_or_none()
+        else:
+            assert (await session.execute(
+                select(Participation).
+                where(Participation.course_id == course.id).
+                where(Participation.user_id == user.id)
+            )).scalar_one_or_none() is None

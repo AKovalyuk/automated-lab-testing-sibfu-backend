@@ -2,10 +2,18 @@ from datetime import datetime
 from typing import List
 from uuid import UUID, uuid4
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, LargeBinary, ForeignKey
-
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+    DeclarativeBase,
+)
+from sqlalchemy import (
+    String,
+    LargeBinary,
+    ForeignKey,
+    UniqueConstraint,
+)
 
 
 class Base(DeclarativeBase):
@@ -14,8 +22,16 @@ class Base(DeclarativeBase):
 
 class Participation(Base):
     __tablename__ = 'participation'
-    user_id: Mapped[UUID] = mapped_column(ForeignKey('user.id'), primary_key=True)
-    course_id: Mapped[UUID] = mapped_column(ForeignKey('course.id'), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey('user.id', ondelete="CASCADE"), primary_key=True,
+    )
+    course_id: Mapped[UUID] = mapped_column(
+        ForeignKey('course.id', ondelete="CASCADE"), primary_key=True,
+    )
+    is_request: Mapped[bool] = mapped_column(default=False)
+    __table_args__ = (
+        UniqueConstraint("user_id", "course_id", name="unique_participation"),
+    )
 
 
 class User(Base):
