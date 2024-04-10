@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+from unittest import TestCase
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import (
@@ -13,6 +14,7 @@ from sqlalchemy import (
     LargeBinary,
     ForeignKey,
     UniqueConstraint,
+    ARRAY,
 )
 
 
@@ -65,8 +67,24 @@ class Practice(Base):
     __tablename__ = 'practice'
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str] = mapped_column()
+
     deadline: Mapped[datetime] = mapped_column()
     soft_deadline: Mapped[datetime] = mapped_column()
+
     course_id: Mapped[UUID] = mapped_column(ForeignKey('course.id'))
-    practice_no: Mapped[int] = mapped_column()
     course: Mapped["Course"] = relationship(back_populates='practices')
+    author_id: Mapped[UUID] = mapped_column(ForeignKey('user.id'))
+
+    testcases: Mapped[list["TestCase"]] = relationship(back_populates='practice')
+
+
+class TestCase(Base):
+    __tablename__ = 'testcase'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    input: Mapped[UUID]
+    excepted: Mapped[UUID]
+    hidden: Mapped[bool] = mapped_column(default=True)
+
+    practice_id: Mapped[UUID] = mapped_column(ForeignKey('practice.id'))
+    practice: Mapped["Practice"] = relationship(back_populates='testcases')
