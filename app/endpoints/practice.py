@@ -86,6 +86,8 @@ async def create_practice(
     if course:
         if user.is_teacher and await is_participant(course, user, session):
             new_practice = Practice(**practice_data.model_dump())
+            new_practice.course = course
+            new_practice.author_id = user.id
             session.add(new_practice)
             await session.commit()
             return PracticeOut.model_validate(new_practice)
@@ -112,6 +114,7 @@ async def delete_practice(
     if course and practice and practice.course_id == course.id:
         if practice_has_write_permission(user, practice, session):
             await session.delete(practice)
+            await session.commit()
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     else:
@@ -137,7 +140,7 @@ async def edit_practice(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     if await practice_has_write_permission(user, practice, session):
-        for field_name, field_value in practice_data.model_dump():
+        for field_name, field_value in practice_data.model_dump().items():
             setattr(practice, field_name, field_value)
         await session.commit()
         return PracticeOut.model_validate(practice)

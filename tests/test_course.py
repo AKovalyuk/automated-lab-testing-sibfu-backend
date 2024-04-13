@@ -2,33 +2,11 @@ from uuid import uuid4
 from time import time
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, inspect
+from sqlalchemy import select
 
 from app.config import settings
-from app.db import User, Course, Participation
-from app.utils import create_user, get_user_authorization_header
-
-
-async def create_test_user(session: AsyncSession, is_teacher=False):
-    password = "123"
-    user = await create_user(
-        session=session,
-        password=password,
-        username=f"test_user_{int(time() * 1000)}",
-        display_name="test_display_name",
-        is_teacher=is_teacher,
-        is_admin=False,
-        email="a@mail.com",
-    )
-    return user, password
-
-
-async def create_test_course(session: AsyncSession):
-    new_course = Course(name="Test course", description="...")
-    session.add(new_course)
-    await session.commit()
-    return new_course
+from app.db import Course, Participation
+from tests.utils import create_test_user, create_test_course, get_user_authorization_header
 
 
 async def test_get_course_by_id_exists_participated(client, session):
@@ -39,9 +17,7 @@ async def test_get_course_by_id_exists_participated(client, session):
 
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/{new_course.id}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
     assert response.json()["id"] == str(new_course.id)
@@ -52,9 +28,7 @@ async def test_get_course_by_id_not_exists(client, session):
     user, password = await create_test_user(session)
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/{uuid4()}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 404
 
@@ -66,9 +40,7 @@ async def test_get_course_by_id_exists_not_participated(client, session):
 
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/{new_course.id}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 403
 
@@ -79,9 +51,7 @@ async def test_get_course_by_id_exists_teacher(client, session):
 
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/{new_course.id}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
     assert response.json()["id"] == str(new_course.id)
@@ -94,9 +64,7 @@ async def test_get_courses_0_participated(client, session):
 
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
     assert response.json() == []
@@ -111,9 +79,7 @@ async def test_get_courses_1_participated(client, session):
 
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
     assert len(response.json()) == 1
@@ -128,9 +94,7 @@ async def test_get_courses_many_participated(client, session):
 
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
     assert len(response.json()) == 2
@@ -146,9 +110,7 @@ async def test_get_courses_many_teacher(client, session):
 
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
     assert len(response.json()) == 4
@@ -162,9 +124,7 @@ async def test_create_course_by_teacher(client, session):
             "name": "Test Course",
             "description": "...",
         },
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code in (200, 201)
     course_id = response.json()["id"]
@@ -183,9 +143,7 @@ async def test_create_course_by_student(client, session):
             "name": "Test Course",
             "description": "...",
         },
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code in (400, 403)
 
@@ -199,9 +157,7 @@ async def test_update_course_by_teacher_participant(client, session):
 
     response = await client.put(
         url=f"{settings.PATH_PREFIX}/course/{course.id}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        },
+        headers=get_user_authorization_header(user, password),
         json={
             "name": "Test Course",
             "description": "...",
@@ -216,9 +172,7 @@ async def test_update_course_by_teacher_not_participant(client, session):
 
     response = await client.put(
         url=f"{settings.PATH_PREFIX}/course/{course.id}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        },
+        headers=get_user_authorization_header(user, password),
         json={
             "name": "Test Course",
             "description": "...",
@@ -236,9 +190,7 @@ async def test_update_course_by_student_participant(client, session):
 
     response = await client.put(
         url=f"{settings.PATH_PREFIX}/course/{course.id}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        },
+        headers=get_user_authorization_header(user, password),
         json={
             "name": "Test Course",
             "description": "...",
@@ -252,9 +204,7 @@ async def test_update_course_not_exists(client, session):
 
     response = await client.put(
         url=f"{settings.PATH_PREFIX}/course/{uuid4()}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        },
+        headers=get_user_authorization_header(user, password),
         json={
             "name": "Test Course",
             "description": "...",
@@ -273,9 +223,7 @@ async def test_delete_course_ok(client, session):
 
     response = await client.delete(
         url=f"{settings.PATH_PREFIX}/course/{course.id}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        },
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code in (200, 204)
     assert list(await session.execute(
@@ -297,9 +245,7 @@ async def test_delete_course_no_permission(client, session):
 
     response = await client.delete(
         url=f"{settings.PATH_PREFIX}/course/{course.id}",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 403
 
@@ -310,9 +256,7 @@ async def test_participation_request_once(client, session):
 
     response = await client.patch(
         url=f"{settings.PATH_PREFIX}/course/{course.id}/participation",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        }
+        headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
     assert await session.scalar(
@@ -329,9 +273,7 @@ async def test_participation_request_multiple(client, session):
     for _ in range(3):
         response = await client.patch(
             url=f"{settings.PATH_PREFIX}/course/{course.id}/participation",
-            headers={
-                "Authorization": get_user_authorization_header(user, password),
-            }
+            headers=get_user_authorization_header(user, password),
         )
         assert response.status_code == 200
     participation_object = await session.scalar(
@@ -369,9 +311,7 @@ async def test_get_participation(
     response = await client.get(
         url=f"{settings.PATH_PREFIX}/course/{course.id}/participation",
         params={"page": page, "size": page_size},
-        headers={
-            "Authorization": get_user_authorization_header(teacher_user, teacher_password),
-        }
+        headers=get_user_authorization_header(teacher_user, teacher_password),
     )
     assert len(response.json()) == excepted_count
 
@@ -382,9 +322,7 @@ async def test_change_update_participation_not_found(client, session):
 
     response = await client.patch(
         url=f"{settings.PATH_PREFIX}/course/{course.id}/participation",
-        headers={
-            "Authorization": get_user_authorization_header(user, password),
-        },
+        headers=get_user_authorization_header(user, password),
         json=[
             {"user_id": str(uuid4()), "status": "approve"},
             {"user_id": str(uuid4()), "status": "remove"},
@@ -411,9 +349,7 @@ async def test_change_update_participation_cross_table(client, session):
 
     response = await client.patch(
         url=f"{settings.PATH_PREFIX}/course/{course.id}/participation_update",
-        headers={
-            "Authorization": get_user_authorization_header(teacher, teacher_password),
-        },
+        headers=get_user_authorization_header(teacher, teacher_password),
         json=[
             {
                 "user_id": str(participants[i][0].id), "status":
