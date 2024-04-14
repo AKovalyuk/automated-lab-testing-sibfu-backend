@@ -71,6 +71,7 @@ async def test_create_practice(client, session):
             "description": "Test Practice",
             "deadline": datetime.now().isoformat(),
             "soft_deadline": datetime.now().isoformat(),
+            "languages": [1, 2],
         },
         headers=get_user_authorization_header(user, password),
     )
@@ -114,6 +115,7 @@ async def test_edit_practice(session, client):
             "description": "Test Practice+",
             "deadline": datetime.now().isoformat(),
             "soft_deadline": datetime.now().isoformat(),
+            "languages": [1],
         },
     )
     assert response.status_code == 200

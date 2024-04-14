@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import List
-from unittest import TestCase
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import (
@@ -15,6 +14,7 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint,
     ARRAY,
+    Integer,
 )
 
 
@@ -75,6 +75,7 @@ class Practice(Base):
     course_id: Mapped[UUID] = mapped_column(ForeignKey('course.id'))
     course: Mapped["Course"] = relationship(back_populates='practices')
     author_id: Mapped[UUID] = mapped_column(ForeignKey('user.id'))
+    languages: Mapped[list[int]] = mapped_column(ARRAY(Integer), server_default="{}")
 
     testcases: Mapped[list["TestCase"]] = relationship(back_populates='practice')
 

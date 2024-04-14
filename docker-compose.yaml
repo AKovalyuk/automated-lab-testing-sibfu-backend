@@ -12,6 +12,7 @@ services:
     volumes:
       - ./app:/app/app:ro
       - ./tests:/app/tests:ro
+      - ./migrator:/app/migrator:ro
     ports:
       - "${APP_PORT}:${APP_PORT}"
     env_file:

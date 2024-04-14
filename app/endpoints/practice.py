@@ -6,17 +6,33 @@ from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.schemas import PracticeIn, PracticeOut
+from app.schemas import PracticeIn, PracticeOut, Language
 from app.dependencies.pagination import pagination_dependency, Pagination
 from app.db import Practice, Course, User, get_session
 from app.dependencies import auth_dependency
 from app.utils import practice_has_write_permission, practice_has_read_permission, is_participant
+from app.config.languages import ARCHIVED, LANGUAGES
 
 
 router = APIRouter(
     prefix='',
     tags=['Practice'],
 )
+
+
+def get_practice_languages(practice: Practice) -> list[Language]:
+    return [
+        Language(id=lang_id, name=LANGUAGES[lang_id].name)
+        for lang_id in practice.languages
+        if lang_id not in ARCHIVED.keys()
+    ]
+
+
+def filter_languages(languages: list[int]) -> list[int]:
+    return [
+        lang_id for lang_id in languages
+        if (lang_id in LANGUAGES) and (lang_id not in ARCHIVED.keys())
+    ]
 
 
 @router.get(
@@ -35,7 +51,9 @@ async def get_practice(
     )
     if practice:
         if await practice_has_read_permission(user, practice, session):
-            return PracticeOut.model_validate(practice)
+            result = PracticeOut.model_validate(practice)
+            result.languages = get_practice_languages(practice)
+            return result
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -85,12 +103,22 @@ async def create_practice(
     course = await session.get(Course, ident=course_id)
     if course:
         if user.is_teacher and await is_participant(course, user, session):
+            practice_data.languages = filter_languages(practice_data.languages)
             new_practice = Practice(**practice_data.model_dump())
             new_practice.course = course
             new_practice.author_id = user.id
             session.add(new_practice)
             await session.commit()
-            return PracticeOut.model_validate(new_practice)
+            return PracticeOut(
+                id=new_practice.id,
+                name=new_practice.name,
+                description=new_practice.description,
+                deadline=new_practice.deadline,
+                soft_deadline=new_practice.soft_deadline,
+                course_id=new_practice.course_id,
+                author_id=new_practice.author_id,
+                languages=get_practice_languages(new_practice),
+            )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -140,9 +168,19 @@ async def edit_practice(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     if await practice_has_write_permission(user, practice, session):
+        practice_data.languages = filter_languages(practice_data.languages)
         for field_name, field_value in practice_data.model_dump().items():
             setattr(practice, field_name, field_value)
         await session.commit()
-        return PracticeOut.model_validate(practice)
+        return PracticeOut(
+            id=practice.id,
+            name=practice.name,
+            description=practice.description,
+            deadline=practice.deadline,
+            soft_deadline=practice.soft_deadline,
+            course_id=practice.course_id,
+            author_id=practice.author_id,
+            languages=get_practice_languages(practice),
+        )
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)

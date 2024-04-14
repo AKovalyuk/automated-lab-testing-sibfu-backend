@@ -12,7 +12,7 @@ class PracticeIn(BaseModel):
     description: str
     deadline: datetime
     soft_deadline: datetime
-    # languages: list[Language]
+    languages: list[int]
 
 
 class PracticeOut(BaseModel):
@@ -23,6 +23,6 @@ class PracticeOut(BaseModel):
     soft_deadline: datetime
     course_id: UUID
     author_id: UUID
-    # languages: list[Language] TODO
+    languages: list[Language] | None
 
     model_config = ConfigDict(from_attributes=True)
