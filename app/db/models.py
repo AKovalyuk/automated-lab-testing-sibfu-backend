@@ -83,8 +83,8 @@ class Practice(Base):
 class TestCase(Base):
     __tablename__ = 'testcase'
     id: Mapped[int] = mapped_column(primary_key=True)
-    input: Mapped[UUID]
-    excepted: Mapped[UUID]
+    input: Mapped[str] = mapped_column(String)
+    excepted: Mapped[str] = mapped_column(String)
     hidden: Mapped[bool] = mapped_column(default=True)
 
     practice_id: Mapped[UUID] = mapped_column(ForeignKey('practice.id'))
