@@ -120,7 +120,7 @@ async def update_testcase(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if not user.is_teacher:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-    for k, v in testcase_data.model_dump():
+    for k, v in testcase_data.model_dump().items():
         setattr(testcase, k, v)
     await session.commit()
     return TestCaseOut.model_validate(testcase)
