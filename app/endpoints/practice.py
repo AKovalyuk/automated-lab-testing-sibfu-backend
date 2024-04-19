@@ -118,6 +118,12 @@ async def create_practice(
                 course_id=new_practice.course_id,
                 author_id=new_practice.author_id,
                 languages=get_practice_languages(new_practice),
+                memory_limit=new_practice.memory_limit,
+                time_limit=new_practice.time_limit,
+                max_threads=new_practice.max_threads,
+                command_line_args=new_practice.command_line_args,
+                network=new_practice.network,
+                allow_multi_file=new_practice.allow_multi_file,
             )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -181,6 +187,12 @@ async def edit_practice(
             course_id=practice.course_id,
             author_id=practice.author_id,
             languages=get_practice_languages(practice),
+            memory_limit=practice.memory_limit,
+            time_limit=practice.time_limit,
+            max_threads=practice.max_threads,
+            command_line_args=practice.command_line_args,
+            network=practice.network,
+            allow_multi_file=practice.allow_multi_file,
         )
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)

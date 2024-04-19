@@ -45,6 +45,12 @@ async def create_test_practice(session: AsyncSession, course: Course, author: Us
         soft_deadline=datetime.now(),
         course_id=course.id,
         author_id=author.id,
+        memory_limit=128000,
+        time_limit=1000,
+        max_threads=1,
+        command_line_args="",
+        network=False,
+        allow_multi_file=False,
     )
     session.add(new_practice)
     await session.commit()

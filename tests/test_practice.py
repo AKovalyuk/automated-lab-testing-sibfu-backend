@@ -72,6 +72,13 @@ async def test_create_practice(client, session):
             "deadline": datetime.now().isoformat(),
             "soft_deadline": datetime.now().isoformat(),
             "languages": [1, 2],
+
+            "memory_limit": 128000,
+            "time_limit": 500,
+            "max_threads": 5,
+            "command_line_args": "--help",
+            "network": True,
+            "allow_multi_file": False,
         },
         headers=get_user_authorization_header(user, password),
     )
@@ -116,6 +123,13 @@ async def test_edit_practice(session, client):
             "deadline": datetime.now().isoformat(),
             "soft_deadline": datetime.now().isoformat(),
             "languages": [1],
+
+            "memory_limit": 128000,
+            "time_limit": 500,
+            "max_threads": 5,
+            "command_line_args": "--help",
+            "network": True,
+            "allow_multi_file": False,
         },
     )
     assert response.status_code == 200

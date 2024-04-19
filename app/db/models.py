@@ -82,6 +82,13 @@ class Practice(Base):
     testcases: Mapped[list["TestCase"]] = relationship(back_populates='practice')
     attempts: Mapped[list["Attempt"]] = relationship(back_populates="practice")
 
+    memory_limit: Mapped[int] = mapped_column()
+    time_limit: Mapped[int] = mapped_column()
+    max_threads: Mapped[int] = mapped_column(default=1)
+    command_line_args: Mapped[str] = mapped_column(String(512), default="")
+    network: Mapped[bool] = mapped_column()
+    allow_multi_file: Mapped[bool] = mapped_column()
+
 
 class TestCase(Base):
     __tablename__ = 'testcase'
