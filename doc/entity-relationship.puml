@@ -47,7 +47,6 @@ entity testcase {
 entity attempt {
     id: UUID
     status: ENUM/VARCHAR
-    passed_count: INTEGER
     linter_score: INTEGER
     language: INTEGER
     practice_id: UUID

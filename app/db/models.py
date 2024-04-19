@@ -15,6 +15,7 @@ from sqlalchemy import (
     UniqueConstraint,
     ARRAY,
     Integer,
+    JSON,
 )
 
 
@@ -49,6 +50,7 @@ class User(Base):
     courses: Mapped["Course"] = relationship(
         secondary=Participation.__table__, back_populates='participants',
     )
+    attempts: Mapped[List["Attempt"]] = relationship(back_populates="author")
 
 
 class Course(Base):
@@ -78,6 +80,7 @@ class Practice(Base):
     languages: Mapped[list[int]] = mapped_column(ARRAY(Integer), server_default="{}")
 
     testcases: Mapped[list["TestCase"]] = relationship(back_populates='practice')
+    attempts: Mapped[list["Attempt"]] = relationship(back_populates="practice")
 
 
 class TestCase(Base):
@@ -89,3 +92,16 @@ class TestCase(Base):
 
     practice_id: Mapped[UUID] = mapped_column(ForeignKey('practice.id'))
     practice: Mapped["Practice"] = relationship(back_populates='testcases')
+
+
+class Attempt(Base):
+    __tablename__ = 'attempt'
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    language_id: Mapped[int] = mapped_column()
+    meta: Mapped[dict] = mapped_column(JSON)
+    sent_time: Mapped[datetime] = mapped_column()
+
+    author_id: Mapped[UUID] = mapped_column(ForeignKey('user.id'))
+    author: Mapped["User"] = relationship(back_populates="attempts")
+    practice_id: Mapped[UUID] = mapped_column(ForeignKey('practice.id'))
+    practice: Mapped["Practice"] = relationship(back_populates='attempts')
