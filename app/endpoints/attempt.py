@@ -4,7 +4,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path, Depends, Body, HTTPException, status, Response
 from starlette import status
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from httpx import AsyncClient
 
@@ -118,6 +118,16 @@ async def get_attempts(
     practice = await session.get(Practice, practice_id)
     if not practice:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    attempts = await session.scalars(
+        select(Attempt).
+        where(Attempt.author_id == user.id).
+        where(Attempt.practice_id == practice.id).
+        order_by(desc(Attempt.sent_time))
+    )
+    return [
+        AttemptOut.model_validate(attempt)
+        for attempt in attempts
+    ]
 
 
 @router.get(

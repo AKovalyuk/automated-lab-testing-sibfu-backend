@@ -2,7 +2,7 @@ from typing import Literal
 from uuid import UUID
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from .language import Language
 from ..db import SubmissionStatus
@@ -19,6 +19,8 @@ class AttemptOut(BaseModel):
     sent_time: datetime
     author_id: int
     practice_id: int
-    passed_count: int
-    total_tests: int
+    # passed_count: int
+    # total_tests: int
     status: SubmissionStatus
+
+    model_config = ConfigDict(from_attributes=True)
