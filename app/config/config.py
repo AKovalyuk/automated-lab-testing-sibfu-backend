@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     # Hostname
     HOST: str = getenv('HOST', 'http://localhost:8000')
 
+    JUDGE0_HOST: str = getenv('JUDGE0_HOST', 'http://runner-server')
+    JUDGE0_PORT: int = int(getenv('JUDGE0_PORT', 2358))
+
+    CALLBACK_URL: str = getenv('CALLBACK_URL', 'http://callback-server/')
+
     def get_db_url(self) -> str:
         if self.DOCKER:
             postgres_host = self.POSTGRES_HOST
