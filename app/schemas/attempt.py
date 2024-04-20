@@ -5,21 +5,20 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from .language import Language
+from ..db import SubmissionStatus
 
 
 class AttemptIn(BaseModel):
-    pass
+    source_code: str
+    language_id: int
 
 
 class AttemptOut(BaseModel):
     id: UUID
-    status: Literal[
-        "Wrong answer",
-        "Accepted",
-        "Compilation error",
-    ]
+    meta: dict
+    sent_time: datetime
+    author_id: int
+    practice_id: int
     passed_count: int
     total_tests: int
-    linter_score: int | None
-    language: Language
-    sent_time: datetime
+    status: SubmissionStatus

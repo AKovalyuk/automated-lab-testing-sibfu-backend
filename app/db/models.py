@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 from uuid import UUID, uuid4
+from enum import Enum
 
 from sqlalchemy.orm import (
     Mapped,
@@ -107,8 +108,31 @@ class Attempt(Base):
     language_id: Mapped[int] = mapped_column()
     meta: Mapped[dict] = mapped_column(JSON)
     sent_time: Mapped[datetime] = mapped_column()
+    status: Mapped[str] = mapped_column(String(50))
 
     author_id: Mapped[UUID] = mapped_column(ForeignKey('user.id'))
     author: Mapped["User"] = relationship(back_populates="attempts")
     practice_id: Mapped[UUID] = mapped_column(ForeignKey('practice.id'))
     practice: Mapped["Practice"] = relationship(back_populates='attempts')
+    submissions: Mapped[list["Submission"]] = relationship(back_populates="attempt")
+
+
+class Submission(Base):
+    __tablename__ = 'submission'
+    token: Mapped[UUID] = mapped_column(primary_key=True)
+    status: Mapped[str] = mapped_column(String(50))
+    time: Mapped[int] = mapped_column()
+    memory: Mapped[int] = mapped_column()
+
+    attempt_id: Mapped[UUID] = mapped_column(ForeignKey("attempt.id"))
+    attempt: Mapped["Attempt"] = relationship(back_populates="submissions")
+
+
+class SubmissionStatus(Enum):
+    IN_QUEUE = "IN_QUEUE"
+    ACCEPTED = "ACCEPTED"
+    TIME_LIMIT_EXCEED = "TIME_LIMIT_EXCEED"
+    MEMORY_LIMIT_EXCEED = "MEMORY_LIMIT_EXCEED"
+    WRONG_ANSWER = "WRONG_ANSWER"
+    SERVICE_ERROR = "SERVICE_ERROR"
+    COMPILATION_ERROR = "COMPILATION_ERROR"
