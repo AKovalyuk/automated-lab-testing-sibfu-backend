@@ -22,33 +22,35 @@ entity course {
     description: TEXT
 }
 
-entity task {
-    id: UUID
-    name: VARCHAR
-    description: UUID
-    test_set: ARRAY[UUID]
-    author: UUID
-}
-
 entity practice {
     id: UUID
     name: VARCHAR
+    description: TEXT
+
     deadline: TIMESTAMP
-    deadline_type: ENUM/VARCHAR
+    soft_deadline: TIMESTAMP
+
     course_id: UUID
-    task_id: UUID
-    practice_no: INTEGER
+    author: UUID
+
+    languages: ARRAY[INTEGER]
+}
+
+entity testcase {
+    id: INTEGER
+    practice_id: UUID
+    input: UUID
+    excepted: UUID
+    hidden: BOOLEAN
 }
 
 entity attempt {
     id: UUID
     status: ENUM/VARCHAR
-    passed_count: INTEGER
     linter_score: INTEGER
-    language: UUID
+    language: INTEGER
     practice_id: UUID
     user_id: UUID
-    task_id: UUID
     sent_time: TIMESTAMP
 }
 
@@ -59,28 +61,12 @@ entity submission {
     test_number: INTEGER
 }
 
-entity language {
-    id: UUID
-    runner_id: INTEGER
-    name: VARCHAR
-}
-
-entity language_permission {
-    language_id: UUID
-    practice_id: UUID
-}
-
 user ||--o{ attempt
-attempt }o--|| task
 attempt }o--|| practice
 user ||--o{ participation
 participation }o--|| course
 practice }o-- course
-user ||--o{ task
-language ||--o{ language_permission
-language ||--o{ attempt
-language_permission }o--|| practice
-task ||--o{ practice
 submission }|--|| attempt
+testcase }o--|| practice
 
 @enduml

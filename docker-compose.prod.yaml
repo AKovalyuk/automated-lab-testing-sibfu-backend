@@ -10,6 +10,7 @@ services:
     volumes:
       - ./app:/app/app:ro
       - ./tests:/app/tests:ro
+      - ./migrator:/app/migrator:ro
     ports:
       - "${APP_PORT}:${APP_PORT}"
     env_file:
@@ -17,7 +18,7 @@ services:
     environment:
       - DOCKER=1
     restart: always
-    command: poetry run uvicorn app.__main__:app --host 0.0.0.0 --port ${APP_PORT} --reload
+    command: ./run
     depends_on:
       - app-db
       - runner-server
@@ -41,7 +42,7 @@ services:
     env_file:
       - .env
     restart: always
-    command: ./run
+    command: poetry run uvicorn app.callback_server:app --host 0.0.0.0 --port ${APP_PORT} --reload
     depends_on:
       - app
 
@@ -55,7 +56,7 @@ services:
     restart: always
 
   runner-server:
-    image: runner-service
+    image: judge0/judge0:latest
     container_name: runner-server
     volumes:
       - ./runner/judge0.conf:/api/judge0.conf:ro
@@ -66,7 +67,7 @@ services:
       - worker
 
   worker:
-    image: runner-service
+    image: judge0/judge0:latest
     container_name: worker
     command: ['./scripts/workers']
     volumes:

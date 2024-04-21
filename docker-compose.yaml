@@ -1,5 +1,3 @@
-# Dev version of docker-compose
-
 version: '3'
 
 services:
@@ -12,6 +10,7 @@ services:
     volumes:
       - ./app:/app/app:ro
       - ./tests:/app/tests:ro
+      - ./migrator:/app/migrator:ro
     ports:
       - "${APP_PORT}:${APP_PORT}"
     env_file:
@@ -59,7 +58,7 @@ services:
     restart: always
 
   runner-server:
-    image: runner-service
+    image: judge0/judge0:latest
     container_name: runner-server
     volumes:
       - ./runner/judge0.conf:/api/judge0.conf:ro
@@ -70,7 +69,7 @@ services:
       - worker
 
   worker:
-    image: runner-service
+    image: judge0/judge0:latest
     container_name: worker
     command: ['./scripts/workers']
     volumes:

@@ -2,24 +2,25 @@ from typing import Literal
 from uuid import UUID
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from .language import Language
+from ..db import SubmissionStatus
 
 
 class AttemptIn(BaseModel):
-    pass
+    source_code: str
+    language_id: int
 
 
 class AttemptOut(BaseModel):
     id: UUID
-    status: Literal[
-        "Wrong answer",
-        "Accepted",
-        "Compilation error",
-    ]
-    passed_count: int
-    total_tests: int
-    linter_score: int | None
-    language: Language
+    meta: dict
     sent_time: datetime
+    author_id: int
+    practice_id: int
+    # passed_count: int
+    # total_tests: int
+    status: SubmissionStatus
+
+    model_config = ConfigDict(from_attributes=True)
