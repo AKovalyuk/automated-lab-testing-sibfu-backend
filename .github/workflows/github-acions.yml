@@ -40,7 +40,7 @@ jobs:
     needs: build
     steps:
       - name: Debug
-        run: echo ${{ github.GITHUB_SHA }}
+        run: echo $GITHUB_SHA
       #- name: Deploy to server
       #  uses: appleboy/ssh-action@v1.0.3
       #  with:
