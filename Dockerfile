@@ -14,6 +14,6 @@ RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry config installer.max-workers 10 && \
     poetry install --no-interaction --no-ansi --no-root && \
-    poetry version \
+    poetry version
 
 
