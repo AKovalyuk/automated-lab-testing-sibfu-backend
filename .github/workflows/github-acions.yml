@@ -41,6 +41,8 @@ jobs:
     steps:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          COMMIT_SHA: ${{ github.sha }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
@@ -50,6 +52,6 @@ jobs:
             cd ${{ secrets.SERVER_WORKDIR }}
             pwd
             git fetch
-            git checkout $GITHUB_SHA
+            git checkout $COMMIT_SHA
             docker-compose down
             docker-compose -f docker-compose.prod.yaml up -d
