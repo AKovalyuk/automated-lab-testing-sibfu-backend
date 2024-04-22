@@ -51,5 +51,5 @@ jobs:
             pwd
             git fetch
             git checkout ${{ github.GITHUB_SHA }}
-            docker compose down
-            docker compose -f docker-compose.prod.yaml up -d
+            docker-compose down
+            docker-compose -f docker-compose.prod.yaml up -d
