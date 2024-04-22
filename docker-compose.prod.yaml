@@ -3,10 +3,7 @@ version: '3'
 services:
   app:
     container_name: app
-    build:
-      context: .
-      args:
-        APP_WORKDIR: "/app"
+    image: ghcr.io/akovalyuk/automated-lab-testing-sibfu-backend:latest
     volumes:
       - ./app:/app/app:ro
       - ./tests:/app/tests:ro
@@ -33,10 +30,7 @@ services:
 
   callback-server:
     container_name: callback-server
-    build:
-      context: .
-      args:
-        APP_WORKDIR: "/app"
+    image: ghcr.io/akovalyuk/automated-lab-testing-sibfu-backend:latest
     volumes:
       - ./app:/app/app:ro
     env_file:

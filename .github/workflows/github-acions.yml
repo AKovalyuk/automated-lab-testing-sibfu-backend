@@ -34,3 +34,20 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          script: |
+            cd $${{ secrets.SERVER_WORKDIR }}
+            git fetch
+            git checkout ${{ github.GITHUB_SHA }}
+            docker compose down
+            docker compose -f docker-compose.prod.yaml up -d
