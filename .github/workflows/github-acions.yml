@@ -54,4 +54,5 @@ jobs:
             git fetch
             git checkout $COMMIT_SHA
             docker-compose down
+            docker-compose pull
             docker-compose -f docker-compose.prod.yaml up -d
