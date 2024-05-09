@@ -1,9 +1,9 @@
 from uuid import UUID
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, Field, ConfigDict
 
+from .testcase import TestCaseIn, TestCaseOut
 from .language import Language
 
 
@@ -20,6 +20,8 @@ class PracticeIn(BaseModel):
     command_line_args: str = Field(max_length=512)
     network: bool
     allow_multi_file: bool
+
+    testcases: list[TestCaseIn] | None
 
 
 class PracticeOut(BaseModel):
@@ -38,5 +40,7 @@ class PracticeOut(BaseModel):
     command_line_args: str = Field(max_length=512)
     network: bool
     allow_multi_file: bool
+
+    testcases: list[TestCaseOut] | None
 
     model_config = ConfigDict(from_attributes=True)

@@ -59,8 +59,8 @@ async def create_test_practice(session: AsyncSession, course: Course, author: Us
 
 async def add_testcase_to_practice(session: AsyncSession, practice: Practice, hidden: bool):
     testcase = TestCase(
-        input=uuid4(),
-        excepted=uuid4(),
+        input="2 + 2",
+        excepted="4",
         hidden=hidden,
         practice=practice,
     )

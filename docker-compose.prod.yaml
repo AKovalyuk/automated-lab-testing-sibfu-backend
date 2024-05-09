@@ -14,6 +14,8 @@ services:
       - .env
     environment:
       - DOCKER=1
+      - COMMIT_SHA=${COMMIT_SHA}
+      - BRANCH=${BRANCH}
     restart: always
     command: ./run
     depends_on:
