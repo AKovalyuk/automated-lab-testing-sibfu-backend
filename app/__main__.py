@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter
+from fastapi.openapi.docs import get_swagger_ui_html
 
 from app.endpoints import routers
 from app.config import settings
@@ -23,10 +24,20 @@ def add_routers(app: FastAPI, router_list: list[APIRouter]):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI()
+    app = FastAPI(docs_url=None)
     add_specification_info(app)
     add_routers(app, routers)
     return app
 
 
 app = create_app()
+
+
+@app.get("/docs", include_in_schema=False)
+async def swagger_ui():
+    return get_swagger_ui_html(
+        title=app.title,
+        openapi_url=app.openapi_url,
+        swagger_js_url="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
+        swagger_css_url="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css",
+    )
