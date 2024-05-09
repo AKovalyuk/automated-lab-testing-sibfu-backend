@@ -80,7 +80,7 @@ class Practice(Base):
     author_id: Mapped[UUID] = mapped_column(ForeignKey('user.id'))
     languages: Mapped[list[int]] = mapped_column(ARRAY(Integer), server_default="{}")
 
-    testcases: Mapped[list["TestCase"]] = relationship(back_populates='practice')
+    testcases: Mapped[list["TestCase"]] = relationship(back_populates='practice', lazy='joined',)
     attempts: Mapped[list["Attempt"]] = relationship(back_populates="practice")
 
     memory_limit: Mapped[int] = mapped_column()

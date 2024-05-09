@@ -13,6 +13,7 @@ from app.schemas import TestCaseIn, TestCaseOut, TestCaseOutBrief
 router = APIRouter(
     prefix="",
     tags=["Testcase"],
+    deprecated=True,
 )
 
 
