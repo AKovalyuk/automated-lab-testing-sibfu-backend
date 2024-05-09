@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, APIRouter
 from fastapi.openapi.docs import get_swagger_ui_html
 
@@ -7,7 +9,8 @@ from app.config import settings
 
 def add_specification_info(app: FastAPI):
     app.title = "Automatic testing programming tasks service"
-    app.description = "Service for automatic testing student's programs in SibFU"
+    app.description = ("Service for automatic testing student's programs in SibFU\n"
+                       f"branch {os.getenv('BRANCH')}, commit {os.getenv('COMMIT_SHA')}")
     app.version = "0.0.1"
     app.servers = [
         {

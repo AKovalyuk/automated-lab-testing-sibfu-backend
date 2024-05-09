@@ -43,6 +43,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           COMMIT_SHA: ${{ github.sha }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
