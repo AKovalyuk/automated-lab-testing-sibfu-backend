@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     STATIC_FILES_DIR: str = getenv('STATIC_FILES_DIR', 'static')
     STATIC_URL: str = getenv('STATIC_URL', '/static')
 
+    ALLOW_ORIGINS: str = getenv('ALLOW_ORIGINS', '*')
+
     def get_db_url(self) -> str:
         if self.DOCKER:
             postgres_host = self.POSTGRES_HOST
