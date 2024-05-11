@@ -3,6 +3,7 @@ import os
 from fastapi import FastAPI, APIRouter
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.endpoints import routers
 from app.config import settings
@@ -35,6 +36,13 @@ def create_app() -> FastAPI:
         path=settings.PATH_PREFIX + settings.STATIC_URL,
         app=StaticFiles(directory=settings.STATIC_FILES_DIR),
         name="static",
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOW_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     return app
 

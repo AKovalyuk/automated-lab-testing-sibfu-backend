@@ -52,7 +52,7 @@ jobs:
           envs: COMMIT_SHA,BRANCH
           script: |
             cd ${{ secrets.SERVER_WORKDIR }}
-            git switch main
+            git checkout main
             git pull
             docker-compose down
             docker pull ghcr.io/akovalyuk/automated-lab-testing-sibfu-backend:latest
