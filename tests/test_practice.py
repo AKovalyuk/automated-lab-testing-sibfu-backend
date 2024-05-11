@@ -117,6 +117,7 @@ async def test_create_practice(client, session):
             "command_line_args": "--help",
             "network": True,
             "allow_multi_file": False,
+            "image_id": str(uuid4()),
 
             "testcases": [],
         },
@@ -150,6 +151,7 @@ async def test_create_practice_with_testcases(client, session):
             "command_line_args": "--help",
             "network": True,
             "allow_multi_file": False,
+            "image_id": str(uuid4()),
 
             "testcases": [
                 {
@@ -210,6 +212,7 @@ async def test_edit_practice(session, client):
             "command_line_args": "--help",
             "network": True,
             "allow_multi_file": False,
+            "image_id": str(uuid4()),
             "testcases": None,
         },
     )
@@ -244,6 +247,7 @@ async def test_edit_practice_with_testcases_not_touched(session, client):
             "command_line_args": "--help",
             "network": True,
             "allow_multi_file": False,
+            "image_id": str(uuid4()),
             "testcases": None,
         },
     )
@@ -278,6 +282,7 @@ async def test_edit_practice_with_testcases_changed(session, client):
             "command_line_args": "--help",
             "network": True,
             "allow_multi_file": False,
+            "image_id": str(uuid4()),
             "testcases": [
                 {
                     "input": "2 + 2",
