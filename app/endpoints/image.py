@@ -9,7 +9,7 @@ from app.schemas import ImageOut
 
 router = APIRouter(
     prefix='',
-    tags=['Attempt'],
+    tags=['Image'],
 )
 
 
