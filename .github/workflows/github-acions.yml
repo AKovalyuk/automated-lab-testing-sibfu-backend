@@ -44,6 +44,7 @@ jobs:
         env:
           COMMIT_SHA: ${{ github.sha }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
+        envs: COMMIT_SHA,BRANCH
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
