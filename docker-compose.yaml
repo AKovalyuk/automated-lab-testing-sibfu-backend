@@ -11,6 +11,7 @@ services:
       - ./app:/app/app:ro
       - ./tests:/app/tests:ro
       - ./migrator:/app/migrator:ro
+      - ./static:/app/static
     ports:
       - "${APP_PORT}:${APP_PORT}"
     env_file:

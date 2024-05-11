@@ -2,6 +2,7 @@ import os
 
 from fastapi import FastAPI, APIRouter
 from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.staticfiles import StaticFiles
 
 from app.endpoints import routers
 from app.config import settings
@@ -10,7 +11,7 @@ from app.config import settings
 def add_specification_info(app: FastAPI):
     app.title = "Automatic testing programming tasks service"
     app.description = ("Service for automatic testing student's programs in SibFU\n"
-                       f"branch {os.getenv('BRANCH')}, commit {os.getenv('COMMIT_SHA')}")
+                       f"Branch {os.getenv('BRANCH')}, commit {os.getenv('COMMIT_SHA')}")
     app.version = "0.0.1"
     app.servers = [
         {
@@ -30,6 +31,11 @@ def create_app() -> FastAPI:
     app = FastAPI(docs_url=None)
     add_specification_info(app)
     add_routers(app, routers)
+    app.mount(
+        path=settings.PATH_PREFIX + settings.STATIC_URL,
+        app=StaticFiles(directory=settings.STATIC_FILES_DIR),
+        name="static",
+    )
     return app
 
 

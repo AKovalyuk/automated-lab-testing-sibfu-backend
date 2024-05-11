@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 from .abstract import AbstractFileStorage
+from app.config import settings
 
 
 class LocalFileStorage(AbstractFileStorage):
@@ -10,7 +11,8 @@ class LocalFileStorage(AbstractFileStorage):
 
     def __init__(self, storage_name: str):
         self.storage_name = storage_name
-        self.path = Path("")
+        self.path = Path(settings.STATIC_FILES_DIR) / storage_name
+        self.path.mkdir(exist_ok=True, parents=True)
 
     @classmethod
     def get_storage(cls, storage_name: str) -> "AbstractFileStorage":
