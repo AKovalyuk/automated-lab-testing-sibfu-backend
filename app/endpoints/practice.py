@@ -70,6 +70,7 @@ async def get_practice(
                 command_line_args=practice.command_line_args,
                 network=practice.network,
                 allow_multi_file=practice.allow_multi_file,
+                image_id=practice.image_id,
                 testcases=[
                     TestCaseOut.model_validate(testcase)
                     for testcase in testcases
@@ -160,6 +161,7 @@ async def create_practice(
                 command_line_args=new_practice.command_line_args,
                 network=new_practice.network,
                 allow_multi_file=new_practice.allow_multi_file,
+                image_id=new_practice.image_id,
                 testcases=[
                     TestCaseOut.model_validate(testcase)
                     for testcase in testcases
@@ -257,6 +259,7 @@ async def edit_practice(
             command_line_args=practice.command_line_args,
             network=practice.network,
             allow_multi_file=practice.allow_multi_file,
+            image_id=practice.image_id,
             testcases=[
                 TestCaseOut.model_validate(testcase)
                 for testcase in testcases

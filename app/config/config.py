@@ -40,6 +40,9 @@ class Settings(BaseSettings):
 
     CALLBACK_URL: str = getenv('CALLBACK_URL', 'http://callback-server/')
 
+    STATIC_FILES_DIR: str = getenv('STATIC_FILES_DIR', 'static')
+    STATIC_URL: str = getenv('STATIC_URL', '/static')
+
     def get_db_url(self) -> str:
         if self.DOCKER:
             postgres_host = self.POSTGRES_HOST

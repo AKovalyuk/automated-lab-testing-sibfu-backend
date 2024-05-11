@@ -161,3 +161,6 @@ cython_debug/
 
 # volume
 data
+
+# Static files
+static
