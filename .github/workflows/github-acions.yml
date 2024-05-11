@@ -44,15 +44,14 @@ jobs:
         env:
           COMMIT_SHA: ${{ github.sha }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
-        envs: COMMIT_SHA,BRANCH
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: 22
+          envs: COMMIT_SHA,BRANCH
           script: |
             cd ${{ secrets.SERVER_WORKDIR }}
-            pwd
             git switch main
             git pull
             docker-compose down
