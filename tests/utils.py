@@ -31,7 +31,11 @@ async def create_test_user(session: AsyncSession, is_teacher=False):
 
 
 async def create_test_course(session: AsyncSession):
-    new_course = Course(name="Test course", description="...")
+    new_course = Course(
+        name="Test course",
+        description="...",
+        image_id=str(uuid4()),
+    )
     session.add(new_course)
     await session.commit()
     return new_course
