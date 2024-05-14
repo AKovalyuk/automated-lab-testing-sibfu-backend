@@ -116,13 +116,15 @@ async def test_get_courses_many_teacher(client, session):
     assert len(response.json()) == 4
 
 
-async def test_create_course_by_teacher(client, session):
+@pytest.mark.parametrize("image_id", [str(uuid4()), None])
+async def test_create_course_by_teacher(client, session, image_id):
     user, password = await create_test_user(session, is_teacher=True)
     response = await client.post(
         url=f"{settings.PATH_PREFIX}/course/",
         json={
             "name": "Test Course",
             "description": "...",
+            "image_id": image_id,
         },
         headers=get_user_authorization_header(user, password),
     )
@@ -135,20 +137,23 @@ async def test_create_course_by_teacher(client, session):
     assert participation.user_id == user.id and str(participation.course_id) == course_id
 
 
-async def test_create_course_by_student(client, session):
+@pytest.mark.parametrize("image_id", [str(uuid4()), None])
+async def test_create_course_by_student(client, session, image_id):
     user, password = await create_test_user(session, is_teacher=False)
     response = await client.post(
         url=f"{settings.PATH_PREFIX}/course/",
         json={
             "name": "Test Course",
             "description": "...",
+            "image_id": image_id,
         },
         headers=get_user_authorization_header(user, password),
     )
     assert response.status_code in (400, 403)
 
 
-async def test_update_course_by_teacher_participant(client, session):
+@pytest.mark.parametrize("image_id", [str(uuid4()), None])
+async def test_update_course_by_teacher_participant(client, session, image_id):
     user, password = await create_test_user(session, is_teacher=True)
     course = await create_test_course(session)
     participation = Participation(course_id=course.id, user_id=user.id)
@@ -161,12 +166,14 @@ async def test_update_course_by_teacher_participant(client, session):
         json={
             "name": "Test Course",
             "description": "...",
+            "image_id": image_id,
         },
     )
     assert response.status_code == 200
 
 
-async def test_update_course_by_teacher_not_participant(client, session):
+@pytest.mark.parametrize("image_id", [str(uuid4()), None])
+async def test_update_course_by_teacher_not_participant(client, session, image_id):
     user, password = await create_test_user(session, is_teacher=True)
     course = await create_test_course(session)
 
@@ -176,6 +183,7 @@ async def test_update_course_by_teacher_not_participant(client, session):
         json={
             "name": "Test Course",
             "description": "...",
+            "image_id": image_id,
         },
     )
     assert response.status_code == 403

@@ -59,6 +59,8 @@ class Course(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column()
+    image_id: Mapped[UUID] = mapped_column(nullable=True)
+
     participants: Mapped[List[User]] = relationship(
         secondary=Participation.__table__, back_populates='courses',
         lazy='selectin',
@@ -89,8 +91,6 @@ class Practice(Base):
     command_line_args: Mapped[str] = mapped_column(String(512), default="")
     network: Mapped[bool] = mapped_column()
     allow_multi_file: Mapped[bool] = mapped_column()
-
-    image_id: Mapped[UUID] = mapped_column(nullable=True)
 
 
 class TestCase(Base):

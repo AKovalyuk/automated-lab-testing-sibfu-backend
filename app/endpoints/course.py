@@ -43,6 +43,7 @@ async def get_course(
             id=course_in_db.id,
             name=course_in_db.name,
             description=course_in_db.description,
+            image_id=course_in_db.image_id,
         )
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
@@ -75,6 +76,7 @@ async def get_courses(
             id=course.id,
             name=course.name,
             description=course.description,
+            image_id=course.image_id,
         ) for course in results
     ]
 
@@ -93,7 +95,11 @@ async def create_course(
     Only teachers can create new courses
     """
     if user.is_teacher:
-        new_course = Course(name=course_data.name, description=course_data.description)
+        new_course = Course(
+            name=course_data.name,
+            description=course_data.description,
+            image_id=course_data.image_id,
+        )
         session.add(new_course)
         await session.flush()
         session.add(Participation(user_id=user.id, course_id=new_course.id))
@@ -102,6 +108,7 @@ async def create_course(
             id=new_course.id,
             name=new_course.name,
             description=new_course.description,
+            image_id=new_course.image_id,
         )
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
@@ -127,8 +134,14 @@ async def edit_course(
     if await get_course_permission(course, user, session) == CoursePermission.WRITE:
         course.description = course_data.description
         course.name = course_data.name
+        course.image_id = course_data.image_id
         await session.commit()
-        return CourseOut(id=course.id, name=course.name, description=course.description)
+        return CourseOut(
+            id=course.id,
+            name=course.name,
+            description=course.description,
+            image_id=course.image_id,
+        )
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 

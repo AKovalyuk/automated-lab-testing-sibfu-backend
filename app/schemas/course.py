@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, ConfigDict
 class CourseIn(BaseModel):
     name: str = Field(max_length=100)
     description: str
+    image_id: UUID | None = None
 
 
 class CourseOut(CourseIn):

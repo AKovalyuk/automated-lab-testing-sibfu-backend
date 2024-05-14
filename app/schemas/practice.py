@@ -22,7 +22,6 @@ class PracticeIn(BaseModel):
     allow_multi_file: bool
 
     testcases: list[TestCaseIn] | None
-    image_id: UUID | None
 
 
 class PracticeOut(BaseModel):
@@ -43,7 +42,5 @@ class PracticeOut(BaseModel):
     allow_multi_file: bool
 
     testcases: list[TestCaseOut] | None
-
-    image_id: UUID | None
 
     model_config = ConfigDict(from_attributes=True)
