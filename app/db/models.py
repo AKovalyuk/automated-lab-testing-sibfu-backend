@@ -92,8 +92,6 @@ class Practice(Base):
     network: Mapped[bool] = mapped_column()
     allow_multi_file: Mapped[bool] = mapped_column()
 
-    image_id: Mapped[UUID] = mapped_column(nullable=True)
-
 
 class TestCase(Base):
     __tablename__ = 'testcase'
