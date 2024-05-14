@@ -107,7 +107,7 @@ async def test_create_practice(client, session):
         json={
             "name": "Test Practice",
             "description": "Test Practice",
-            "deadline": datetime.now().isoformat(),
+            "deadline": datetime.now().isoformat() + 'Z',  # Check timezone ISO format
             "soft_deadline": datetime.now().isoformat(),
             "languages": [1, 2],
 
