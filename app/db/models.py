@@ -17,6 +17,7 @@ from sqlalchemy import (
     ARRAY,
     Integer,
     JSON,
+    TIMESTAMP,
 )
 
 
@@ -74,8 +75,8 @@ class Practice(Base):
     name: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column()
 
-    deadline: Mapped[datetime] = mapped_column()
-    soft_deadline: Mapped[datetime] = mapped_column()
+    deadline: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
+    soft_deadline: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
 
     course_id: Mapped[UUID] = mapped_column(ForeignKey('course.id'))
     course: Mapped["Course"] = relationship(back_populates='practices')
@@ -109,7 +110,7 @@ class Attempt(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True)
     language_id: Mapped[int] = mapped_column()
     meta: Mapped[dict] = mapped_column(JSON)
-    sent_time: Mapped[datetime] = mapped_column()
+    sent_time: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
     status: Mapped[str] = mapped_column(String(50))
 
     author_id: Mapped[UUID] = mapped_column(ForeignKey('user.id'))
