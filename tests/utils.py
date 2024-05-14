@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import User
 from app.utils import create_user
 from app.db import Course, Practice, TestCase
+from app.config.languages import LANGUAGES
 
 
 def get_user_authorization_header(user: User, password: str) -> dict[str, str]:
@@ -55,6 +56,7 @@ async def create_test_practice(session: AsyncSession, course: Course, author: Us
         command_line_args="",
         network=False,
         allow_multi_file=False,
+        languages=list(LANGUAGES.keys()),
     )
     session.add(new_practice)
     await session.commit()

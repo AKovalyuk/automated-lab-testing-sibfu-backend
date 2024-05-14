@@ -98,16 +98,32 @@ async def get_practice_list(
     course = await session.get(Course, ident=course_id)
     if course:
         if await is_participant(course, user, session):
-            results = await session.execute(
-                select(Practice.__table__.c).
+            practices = await session.scalars(
+                select(Practice).
                 where(Practice.course_id == course_id).
                 limit(pagination.size).
                 offset(pagination.size * (pagination.page - 1)).
                 order_by(Practice.deadline)
             )
             return [
-                PracticeOut(testcases=None, **result)
-                for result in results.mappings()
+                PracticeOut(
+                    id=practice.id,
+                    name=practice.name,
+                    description=practice.description,
+                    deadline=practice.deadline,
+                    soft_deadline=practice.soft_deadline,
+                    course_id=practice.course_id,
+                    author_id=practice.author_id,
+                    languages=get_practice_languages(practice),
+                    memory_limit=practice.memory_limit,
+                    time_limit=practice.time_limit,
+                    max_threads=practice.max_threads,
+                    command_line_args=practice.command_line_args,
+                    network=practice.network,
+                    allow_multi_file=practice.allow_multi_file,
+                    testcases=None
+                )
+                for practice in practices.unique()
             ]
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
