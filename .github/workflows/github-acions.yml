@@ -54,6 +54,6 @@ jobs:
             cd ${{ secrets.SERVER_WORKDIR }}
             git checkout main
             git pull
-            docker-compose down
+            docker compose down
             docker pull ghcr.io/akovalyuk/automated-lab-testing-sibfu-backend:latest
-            docker-compose -f docker-compose.prod.yaml up -d
+            docker compose -f docker-compose.prod.yaml up -d
