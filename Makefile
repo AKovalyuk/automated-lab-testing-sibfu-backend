@@ -8,7 +8,7 @@ dev:
 	docker compose up
 
 api-only:
-	docker compose up app app-db app-redis --no-deps
+	docker compose up app app-db app-redis nginx --no-deps
 
 prod:
 	docker compose -f docker-compose.prod.yaml up
