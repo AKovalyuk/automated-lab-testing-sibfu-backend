@@ -8,6 +8,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from httpx import AsyncClient
 
+from app.config.languages import LANGUAGES
 from app.db import get_session, User, Practice, Course, Participation, Submission, SubmissionStatus, Attempt
 from app.dependencies import auth_dependency
 from app.schemas import AttemptOut, AttemptIn
@@ -38,7 +39,8 @@ async def send_attempt(
     participation = await session.scalar(
         select(Participation).
         where(Participation.course_id == practice.course_id).
-        where(Participation.user_id == user.id)
+        where(Participation.user_id == user.id).
+        where(Participation.is_request == False)
     )
     if not participation:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
@@ -64,7 +66,7 @@ async def send_attempt(
         submissions.append(
             {
                 "source_code": attempt_data.source_code,
-                "language_id": attempt_data.language_id,
+                "language_id": LANGUAGES[attempt_data.language_id].judge0id,
                 "memory_limit": practice.memory_limit,
                 "cpu_time_limit": practice.time_limit / 1000,
                 "excepted_output": testcase.excepted,
@@ -77,11 +79,7 @@ async def send_attempt(
     # Send multiple submissions in one request
     async with AsyncClient() as client:
         response = await client.post(
-            url=f"{settings.JUDGE0_HOST}:{settings.JUDGE0_PORT}/submissions",
-            params={
-                "base64_encoded": "false",
-                "wait": "false",
-            },
+            url=f"{settings.JUDGE0_HOST}:{settings.JUDGE0_PORT}/submissions/batch",
             json={
                 "submissions": submissions,
             }

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 from uuid import UUID, uuid4
-from enum import Enum
+from enum import Enum, StrEnum
 
 from sqlalchemy.orm import (
     Mapped,
@@ -107,7 +107,7 @@ class TestCase(Base):
 
 class Attempt(Base):
     __tablename__ = 'attempt'
-    id: Mapped[UUID] = mapped_column(primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     language_id: Mapped[int] = mapped_column()
     meta: Mapped[dict] = mapped_column(JSON)
     sent_time: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
@@ -117,7 +117,7 @@ class Attempt(Base):
     author: Mapped["User"] = relationship(back_populates="attempts")
     practice_id: Mapped[UUID] = mapped_column(ForeignKey('practice.id'))
     practice: Mapped["Practice"] = relationship(back_populates='attempts')
-    submissions: Mapped[list["Submission"]] = relationship(back_populates="attempt")
+    submissions: Mapped[list["Submission"]] = relationship(back_populates="attempt", lazy='selectin')
 
 
 class Submission(Base):
@@ -127,11 +127,11 @@ class Submission(Base):
     time: Mapped[int] = mapped_column()
     memory: Mapped[int] = mapped_column()
 
-    attempt_id: Mapped[UUID] = mapped_column(ForeignKey("attempt.id"))
-    attempt: Mapped["Attempt"] = relationship(back_populates="submissions")
+    attempt_id: Mapped[UUID] = mapped_column(ForeignKey("attempt.id", ondelete="CASCADE"))
+    attempt: Mapped["Attempt"] = relationship(back_populates="submissions", lazy='selectin')
 
 
-class SubmissionStatus(Enum):
+class SubmissionStatus(StrEnum):
     IN_QUEUE = "IN_QUEUE"
     ACCEPTED = "ACCEPTED"
     TIME_LIMIT_EXCEED = "TIME_LIMIT_EXCEED"
