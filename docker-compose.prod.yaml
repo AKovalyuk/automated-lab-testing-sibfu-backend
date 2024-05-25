@@ -9,8 +9,8 @@ services:
       - ./tests:/app/tests:ro
       - ./migrator:/app/migrator:ro
       - ./static:/app/static
-    # ports:
-    #   - "${APP_PORT}:${APP_PORT}"
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
     env_file:
       - .env
     environment:
@@ -32,16 +32,10 @@ services:
       - "443:443"
     restart: always
     volumes:
-      - ./nginx.prod.conf:/etc/nginx/nginx.conf
-      - ./certbot/www/:/var/www/certbot/:ro
+      - ./nginx.prod.conf:/etc/nginx/conf.d/sibfu-code.ru.conf
+      - ./letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - app
-
-  certbot:
-    image: certbot/certbot:v1.32.1
-    volumes:
-      - ./certbot/www/:/var/www/certbot/
-      - ./certbot/conf/:/etc/letsencrypt/
 
   app-redis:
     container_name: app-redis

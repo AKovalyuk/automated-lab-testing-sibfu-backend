@@ -164,3 +164,6 @@ data
 
 # Static files
 static
+
+# Certificates
+letsencrypt/
