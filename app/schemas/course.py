@@ -29,6 +29,7 @@ class ParticipationOut(BaseModel):
     email: str
     is_teacher: bool
     is_request: bool
+    user_id: UUID
 
     model_config = ConfigDict(from_attributes=True)
 

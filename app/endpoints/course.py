@@ -210,7 +210,7 @@ async def get_participation(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     if course:
         results = await session.execute(
-            select(User.__table__.c, Participation.is_request.label('is_request')).
+            select(User.__table__.c, Participation.is_request.label('is_request'), Participation.user_id).
             join(Participation).
             where(Participation.course_id == course_id).
             limit(pagination.size).
