@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.schemas import CallbackServerRequest
 from app.db import get_session
@@ -43,14 +44,46 @@ async def callback(
         session: Annotated[AsyncSession, Depends(get_session)],
 ):
     submission = await session.get(Submission, message.token)
-    async with session.begin():
-        attempt: Attempt = submission.attempt
-        submission_status = STATUS_ID_MAP[message.status.id]
-        if STATUS_PRIORITY_MAP[submission_status] > STATUS_PRIORITY_MAP[attempt.status]:
-            attempt.status = submission_status
-        submission.status = submission_status
-        submission.time = int(message.time * 1000)
-        submission.memory = message.memory
-    if all(subm.status == SubmissionStatus.ACCEPTED for subm in attempt.submissions):
-        attempt.status = SubmissionStatus.ACCEPTED
-        await session.commit()
+    attempt: Attempt = submission.attempt
+    submission_status = STATUS_ID_MAP[message.status.id]
+    print(submission_status, message.status.id)
+    #if STATUS_PRIORITY_MAP[submission_status] > STATUS_PRIORITY_MAP[attempt.status]:
+    #    attempt.status = submission_status
+    submission.status = submission_status
+    submission.time = int(message.time * 1000)
+    submission.memory = message.memory
+    await session.flush()
+    sibling_submission = list(await session.scalars(
+        select(Submission).
+        where(Submission.attempt_id == attempt.id)
+    ))
+    acc_count = 0
+    wa_count = 0
+    tle_count = 0
+    mle_count = 0
+    se_count = 0
+    total_count = len(sibling_submission)
+    for subm in sibling_submission:
+        match subm.status:
+            case SubmissionStatus.ACCEPTED:
+                acc_count += 1
+            case SubmissionStatus.MEMORY_LIMIT_EXCEED:
+                mle_count += 1
+            case SubmissionStatus.WRONG_ANSWER:
+                wa_count += 1
+            case SubmissionStatus.TIME_LIMIT_EXCEED:
+                tle_count += 1
+            case SubmissionStatus.SERVICE_ERROR:
+                se_count += 1
+    if attempt.status == SubmissionStatus.IN_QUEUE:
+        if se_count > 0:
+            attempt.status = SubmissionStatus.SERVICE_ERROR
+        elif acc_count == total_count:
+            attempt.status = SubmissionStatus.ACCEPTED
+        elif acc_count + mle_count + wa_count + tle_count == total_count:
+            attempt.status = max([
+                (mle_count, SubmissionStatus.MEMORY_LIMIT_EXCEED),
+                (wa_count, SubmissionStatus.WRONG_ANSWER),
+                (tle_count, SubmissionStatus.TIME_LIMIT_EXCEED)
+            ])[1]
+    await session.commit()

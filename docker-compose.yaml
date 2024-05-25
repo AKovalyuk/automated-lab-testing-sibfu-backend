@@ -72,6 +72,8 @@ services:
   runner-server:
     image: judge0/judge0:latest
     container_name: runner-server
+    ports:
+      - "2358:2358"
     volumes:
       - ./runner/judge0.conf:/api/judge0.conf:ro
     privileged: true
