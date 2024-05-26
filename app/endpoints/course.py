@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Body, Depends, Query, HTTPException
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 
 from app.dependencies import auth_dependency
 from app.schemas.course import CourseOut, CourseIn, ParticipationOut, ParticipationIn, Summary
@@ -57,20 +57,20 @@ async def get_courses(
     user: Annotated[User, Depends(auth_dependency)],
     pagination: Annotated[Pagination, Depends(pagination_dependency)],
     session: Annotated[AsyncSession, Depends(get_session)],
+    search: Annotated[str, Query()] = None,
 ) -> list[CourseOut]:
     # TODO pagination
     """
     Get user's courses
     """
     if user.is_teacher:
-        results = await session.scalars(
-            select(Course)
-        )
+        query = select(Course)
     else:
-        results = await session.scalars(
-            # TODO SELECT DISTINCT?
-            select(Course).join(Participation).where(Participation.user_id == user.id)
-        )
+        # TODO SELECT DISTINCT?
+        query = select(Course).join(Participation).where(Participation.user_id == user.id)
+    if search:
+        query = query.where(func.lower(Course.name).startswith(search.lower()))
+    results = await session.scalars(query)
     return [
         CourseOut(
             id=course.id,
