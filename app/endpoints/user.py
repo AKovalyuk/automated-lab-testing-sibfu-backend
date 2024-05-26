@@ -15,6 +15,23 @@ router = APIRouter(prefix='/user', tags=['User'])
 
 
 @router.get(
+    path='/me',
+    status_code=status.HTTP_200_OK,
+    response_model=UserOut,
+)
+async def get_me(
+        user: Annotated[User, Depends(auth_dependency)],
+):
+    return UserOut(
+        id=user.id,
+        username=user.username,
+        display_name=user.display_name,
+        is_teacher=user.is_teacher,
+        email=user.email,
+    )
+
+
+@router.get(
     path='/{user_id}',
     status_code=status.HTTP_200_OK,
     response_model=UserOut,
@@ -49,20 +66,3 @@ async def edit_user(
     Edit user data
     """
     pass
-
-
-@router.get(
-    path='/me',
-    status_code=status.HTTP_200_OK,
-    response_model=UserOut,
-)
-async def get_me(
-        user: Annotated[User, Depends(auth_dependency)],
-):
-    return UserOut(
-        id=user.id,
-        username=user.username,
-        display_name=user.display_name,
-        is_teacher=user.is_teacher,
-        email=user.email,
-    )
