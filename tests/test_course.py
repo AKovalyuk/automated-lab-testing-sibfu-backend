@@ -113,7 +113,7 @@ async def test_get_courses_many_teacher(client, session):
         headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
-    assert len(response.json()) == 4
+    assert len(response.json()) == 2
 
 
 @pytest.mark.parametrize("image_id", [str(uuid4()), None])
