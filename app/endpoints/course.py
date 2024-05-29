@@ -7,15 +7,49 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, func
 
 from app.dependencies import auth_dependency
-from app.schemas.course import CourseOut, CourseIn, ParticipationOut, ParticipationIn, Summary
+from app.schemas.course import (
+    CourseOut,
+    CourseIn,
+    ParticipationOut,
+    ParticipationIn,
+    Summary,
+    CourseSearchResult,
+    ParticipationStatus,
+)
 from app.dependencies.pagination import pagination_dependency, Pagination
 from app.db import get_session, Course, User, Participation
 from app.utils import get_course_permission, CoursePermission, is_participant
+
 
 router = APIRouter(
     prefix='/course',
     tags=['Course'],
 )
+
+
+@router.get(
+    path='/search',
+    status_code=status.HTTP_200_OK,
+    response_model=list[CourseSearchResult],
+)
+async def search_course(
+        user: Annotated[User, Depends(auth_dependency)],
+        session: Annotated[AsyncSession, Depends(get_session)],
+        search: Annotated[str, Query()] = None,
+):
+    query = select(Course)
+    if search:
+        query = query.where(func.lower(Course.name).startswith(search.lower()))
+    results = await session.scalars(query)
+    return [
+        CourseSearchResult(
+            id=result.id,
+            name=result.name,
+            description=result.description,
+            image_id=result.image_id,
+            participation_status=ParticipationStatus.NONE,
+        ) for result in results
+    ]
 
 
 @router.get(
@@ -57,20 +91,17 @@ async def get_courses(
     user: Annotated[User, Depends(auth_dependency)],
     pagination: Annotated[Pagination, Depends(pagination_dependency)],
     session: Annotated[AsyncSession, Depends(get_session)],
-    search: Annotated[str, Query()] = None,
 ) -> list[CourseOut]:
     # TODO pagination
     """
     Get user's courses
     """
-    if user.is_teacher:
-        query = select(Course)
-    else:
-        # TODO SELECT DISTINCT?
-        query = select(Course).join(Participation).where(Participation.user_id == user.id)
-    if search:
-        query = query.where(func.lower(Course.name).startswith(search.lower()))
-    results = await session.scalars(query)
+    results = await session.scalars(
+        select(Course).
+        join(Participation).
+        where(Participation.user_id == user.id).
+        where(Participation.is_request == False)
+    )
     return [
         CourseOut(
             id=course.id,

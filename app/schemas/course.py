@@ -1,8 +1,15 @@
 from uuid import UUID
 from datetime import datetime
 from typing import Literal
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, ConfigDict
+
+
+class ParticipationStatus(StrEnum):
+    PARTICIPANT = "PARTICIPANT"
+    REQUESTOR = "REQUESTOR"
+    NONE = "NONE"
 
 
 class CourseIn(BaseModel):
@@ -32,6 +39,10 @@ class ParticipationOut(BaseModel):
     user_id: UUID
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CourseSearchResult(CourseOut):
+    participation_status: ParticipationStatus
 
 
 class Summary(BaseModel):
