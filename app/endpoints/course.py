@@ -240,14 +240,14 @@ async def course_participation_request(
 @router.get(
     path='/{course_id}/participation',
     status_code=status.HTTP_200_OK,
-    response_model=list[ParticipationOut],
+    response_model=PaginationResult[ParticipationOut],
 )
 async def get_participation(
         course_id: Annotated[UUID, Path()],
         user: Annotated[User, Depends(auth_dependency)],
         session: Annotated[AsyncSession, Depends(get_session)],
         pagination: Annotated[Pagination, Depends(pagination_dependency)],
-) -> list[ParticipationOut]:
+) -> PaginationResult[ParticipationOut]:
     course = await session.get(Course, ident=course_id)
     if not user.is_teacher:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
@@ -259,9 +259,18 @@ async def get_participation(
             limit(pagination.size).
             offset(pagination.size * (pagination.page - 1))
         )
-        return [
-            ParticipationOut(**result) for result in results.mappings()
-        ]
+        count = await session.scalar(
+            select(func.count()).
+            select_from(User, Participation).
+            join(Participation).
+            where(Participation.course_id == course_id)
+        )
+        return PaginationResult[ParticipationOut](
+            count=count,
+            results=[
+                ParticipationOut(**result) for result in results.mappings()
+            ]
+        )
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
