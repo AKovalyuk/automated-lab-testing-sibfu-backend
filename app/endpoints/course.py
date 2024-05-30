@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, func
 
 from app.dependencies import auth_dependency
+from app.schemas import PaginationResult
 from app.schemas.course import (
     CourseOut,
     CourseIn,
@@ -84,15 +85,14 @@ async def get_course(
 
 @router.get(
     path='/',
-    response_model=list[CourseOut],
+    response_model=PaginationResult[CourseOut],
     status_code=status.HTTP_200_OK,
 )
 async def get_courses(
     user: Annotated[User, Depends(auth_dependency)],
     pagination: Annotated[Pagination, Depends(pagination_dependency)],
     session: Annotated[AsyncSession, Depends(get_session)],
-) -> list[CourseOut]:
-    # TODO pagination
+) -> PaginationResult[CourseOut]:
     """
     Get user's courses
     """
@@ -100,16 +100,28 @@ async def get_courses(
         select(Course).
         join(Participation).
         where(Participation.user_id == user.id).
+        where(Participation.is_request == False).
+        offset((pagination.page - 1) * pagination.size).
+        limit(pagination.size)
+    )
+    count = await session.scalar(
+        select(func.count()).
+        select_from(Course).
+        join(Participation).
+        where(Participation.user_id == user.id).
         where(Participation.is_request == False)
     )
-    return [
-        CourseOut(
-            id=course.id,
-            name=course.name,
-            description=course.description,
-            image_id=course.image_id,
-        ) for course in results
-    ]
+    return PaginationResult[CourseOut](
+        count=count,
+        results=[
+            CourseOut(
+                id=course.id,
+                name=course.name,
+                description=course.description,
+                image_id=course.image_id,
+            ) for course in results
+        ]
+    )
 
 
 @router.post(
@@ -228,14 +240,14 @@ async def course_participation_request(
 @router.get(
     path='/{course_id}/participation',
     status_code=status.HTTP_200_OK,
-    response_model=list[ParticipationOut],
+    response_model=PaginationResult[ParticipationOut],
 )
 async def get_participation(
         course_id: Annotated[UUID, Path()],
         user: Annotated[User, Depends(auth_dependency)],
         session: Annotated[AsyncSession, Depends(get_session)],
         pagination: Annotated[Pagination, Depends(pagination_dependency)],
-) -> list[ParticipationOut]:
+) -> PaginationResult[ParticipationOut]:
     course = await session.get(Course, ident=course_id)
     if not user.is_teacher:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
@@ -247,9 +259,18 @@ async def get_participation(
             limit(pagination.size).
             offset(pagination.size * (pagination.page - 1))
         )
-        return [
-            ParticipationOut(**result) for result in results.mappings()
-        ]
+        count = await session.scalar(
+            select(func.count()).
+            select_from(User, Participation).
+            join(Participation).
+            where(Participation.course_id == course_id)
+        )
+        return PaginationResult[ParticipationOut](
+            count=count,
+            results=[
+                ParticipationOut(**result) for result in results.mappings()
+            ]
+        )
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 

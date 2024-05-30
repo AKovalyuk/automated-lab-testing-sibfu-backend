@@ -4,14 +4,14 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path, Depends, Body, HTTPException, status, Response
 from starlette import status
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from httpx import AsyncClient
 
 from app.config.languages import LANGUAGES
 from app.db import get_session, User, Practice, Course, Participation, Submission, SubmissionStatus, Attempt
-from app.dependencies import auth_dependency
-from app.schemas import AttemptOut, AttemptIn
+from app.dependencies import auth_dependency, Pagination, pagination_dependency
+from app.schemas import AttemptOut, AttemptIn, PaginationResult
 from app.config import settings
 
 router = APIRouter(
@@ -105,14 +105,15 @@ async def send_attempt(
 
 @router.get(
     path='/practice/{practice_id}/attempt',
-    response_model=list[AttemptOut],
+    response_model=PaginationResult[AttemptOut],
     status_code=status.HTTP_200_OK,
 )
 async def get_attempts(
         practice_id: Annotated[UUID, Path()],
         user: Annotated[User, Depends(auth_dependency)],
         session: Annotated[AsyncSession, Depends(get_session)],
-) -> list[AttemptOut]:
+        pagination: Annotated[Pagination, Depends(pagination_dependency)],
+) -> PaginationResult[AttemptOut]:
     practice = await session.get(Practice, practice_id)
     if not practice:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -120,12 +121,23 @@ async def get_attempts(
         select(Attempt).
         where(Attempt.author_id == user.id).
         where(Attempt.practice_id == practice.id).
-        order_by(desc(Attempt.sent_time))
+        order_by(desc(Attempt.sent_time)).
+        limit(pagination.size).
+        offset(pagination.size * (pagination.page - 1))
     )
-    return [
-        AttemptOut.model_validate(attempt)
-        for attempt in attempts
-    ]
+    count = await session.scalar(
+        select(func.count()).
+        select_from(Attempt).
+        where(Attempt.author_id == user.id).
+        where(Attempt.practice_id == practice.id)
+    )
+    return PaginationResult[AttemptOut](
+        count=count,
+        results=[
+            AttemptOut.model_validate(attempt)
+            for attempt in attempts
+        ]
+    )
 
 
 @router.get(
