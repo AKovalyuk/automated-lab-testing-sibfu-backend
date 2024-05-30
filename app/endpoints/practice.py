@@ -4,9 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Body, Depends, HTTPException
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 
-from app.schemas import PracticeIn, PracticeOut, Language, TestCaseOut
+from app.schemas import PracticeIn, PracticeOut, Language, TestCaseOut, PaginationResult
 from app.dependencies.pagination import pagination_dependency, Pagination
 from app.db import Practice, Course, User, get_session, TestCase
 from app.dependencies import auth_dependency
@@ -83,7 +83,7 @@ async def get_practice(
 
 @router.get(
     path='/course/{course_id}/practice',
-    response_model=list[PracticeOut],
+    response_model=PaginationResult[PracticeOut],
     status_code=status.HTTP_200_OK,
 )
 async def get_practice_list(
@@ -91,7 +91,7 @@ async def get_practice_list(
         user: Annotated[User, Depends(auth_dependency)],
         session: Annotated[AsyncSession, Depends(get_session)],
         pagination: Annotated[Pagination, Depends(pagination_dependency)],
-) -> list[PracticeOut]:
+) -> PaginationResult[PracticeOut]:
     """
     Get course practices in deadline order
     """
@@ -105,26 +105,34 @@ async def get_practice_list(
                 offset(pagination.size * (pagination.page - 1)).
                 order_by(Practice.deadline)
             )
-            return [
-                PracticeOut(
-                    id=practice.id,
-                    name=practice.name,
-                    description=practice.description,
-                    deadline=practice.deadline,
-                    soft_deadline=practice.soft_deadline,
-                    course_id=practice.course_id,
-                    author_id=practice.author_id,
-                    languages=get_practice_languages(practice),
-                    memory_limit=practice.memory_limit,
-                    time_limit=practice.time_limit,
-                    max_threads=practice.max_threads,
-                    command_line_args=practice.command_line_args,
-                    network=practice.network,
-                    allow_multi_file=practice.allow_multi_file,
-                    testcases=None
-                )
-                for practice in practices.unique()
-            ]
+            count = await session.scalar(
+                select(func.count()).
+                select_from(Practice).
+                where(Practice.course_id == course_id)
+            )
+            return PaginationResult[PracticeOut](
+                count=count,
+                results=[
+                    PracticeOut(
+                        id=practice.id,
+                        name=practice.name,
+                        description=practice.description,
+                        deadline=practice.deadline,
+                        soft_deadline=practice.soft_deadline,
+                        course_id=practice.course_id,
+                        author_id=practice.author_id,
+                        languages=get_practice_languages(practice),
+                        memory_limit=practice.memory_limit,
+                        time_limit=practice.time_limit,
+                        max_threads=practice.max_threads,
+                        command_line_args=practice.command_line_args,
+                        network=practice.network,
+                        allow_multi_file=practice.allow_multi_file,
+                        testcases=None
+                    )
+                    for practice in practices.unique()
+                ]
+            )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
