@@ -67,7 +67,7 @@ async def test_get_courses_0_participated(client, session):
         headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json() == {"count": 0, "results": []}
 
 
 async def test_get_courses_1_participated(client, session):
@@ -82,8 +82,9 @@ async def test_get_courses_1_participated(client, session):
         headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
-    assert len(response.json()) == 1
-    assert response.json()[0]["id"] == str(courses[0].id)
+    assert response.json()["count"] == 1
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["id"] == str(courses[0].id)
 
 
 async def test_get_courses_many_participated(client, session):
@@ -97,9 +98,10 @@ async def test_get_courses_many_participated(client, session):
         headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
-    assert len(response.json()) == 2
-    assert response.json()[0]["id"] == str(courses[0].id)
-    assert response.json()[1]["id"] == str(courses[1].id)
+    assert response.json()["count"] == 2
+    assert len(response.json()["results"]) == 2
+    assert response.json()["results"][0]["id"] == str(courses[0].id)
+    assert response.json()["results"][1]["id"] == str(courses[1].id)
 
 
 async def test_get_courses_many_teacher(client, session):
@@ -321,7 +323,8 @@ async def test_get_participation(
         params={"page": page, "size": page_size},
         headers=get_user_authorization_header(teacher_user, teacher_password),
     )
-    assert len(response.json()) == excepted_count
+    assert response.json()["count"] == excepted_count
+    assert len(response.json()["results"]) == excepted_count
 
 
 async def test_change_update_participation_not_found(client, session):

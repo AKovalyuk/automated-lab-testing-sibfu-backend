@@ -16,6 +16,7 @@ class AttemptIn(BaseModel):
 class AttemptOut(BaseModel):
     id: UUID
     meta: dict
+    language_id: int
     sent_time: datetime
     author_id: UUID
     practice_id: UUID
