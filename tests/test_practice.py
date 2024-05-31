@@ -91,8 +91,9 @@ async def test_get_practice_list(client, session):
         headers=get_user_authorization_header(user, password),
     )
     assert response.status_code == 200
-    assert len(response.json()) == 10
-    assert response.json()[0]["testcases"] is None
+    assert len(response.json()["results"]) == 10
+    assert response.json()["count"] == 10
+    assert response.json()["results"][0]["testcases"] is None
 
 
 async def test_create_practice(client, session):
