@@ -155,7 +155,7 @@ async def create_practice(
             data = practice_data.model_dump()
             del data["testcases"]
             new_practice = Practice(**data)
-            new_practice.course = course
+            new_practice.course_id = course.id
             new_practice.author_id = user.id
             session.add(new_practice)
 
