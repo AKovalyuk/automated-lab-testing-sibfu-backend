@@ -112,6 +112,8 @@ class Attempt(Base):
     meta: Mapped[dict] = mapped_column(JSON)
     sent_time: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
     status: Mapped[str] = mapped_column(String(50))
+    tests_needed: Mapped[int] = mapped_column(default=0)
+    tests_completed: Mapped[int] = mapped_column(default=0)
 
     author_id: Mapped[UUID] = mapped_column(ForeignKey('user.id'))
     author: Mapped["User"] = relationship(back_populates="attempts")
@@ -127,7 +129,10 @@ class Submission(Base):
     time: Mapped[int] = mapped_column()
     memory: Mapped[int] = mapped_column()
 
-    attempt_id: Mapped[UUID] = mapped_column(ForeignKey("attempt.id", ondelete="CASCADE"))
+    attempt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("attempt.id", ondelete="CASCADE"),
+        nullable=True,
+    )
     attempt: Mapped["Attempt"] = relationship(back_populates="submissions", lazy='selectin')
 
 
@@ -137,5 +142,6 @@ class SubmissionStatus(StrEnum):
     TIME_LIMIT_EXCEED = "TIME_LIMIT_EXCEED"
     MEMORY_LIMIT_EXCEED = "MEMORY_LIMIT_EXCEED"
     WRONG_ANSWER = "WRONG_ANSWER"
+    RUNTIME_ERROR = "RUNTIME_ERROR"
     SERVICE_ERROR = "SERVICE_ERROR"
     COMPILATION_ERROR = "COMPILATION_ERROR"

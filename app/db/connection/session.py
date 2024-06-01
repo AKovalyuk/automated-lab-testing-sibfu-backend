@@ -17,7 +17,8 @@ class SessionManager:
         return sessionmaker(self.engine, class_=AsyncSession, expire_on_commit=False)
 
     def refresh(self) -> None:
-        self.engine = create_async_engine(settings.get_db_url_async(), echo=False, future=True)
+        self.engine = create_async_engine(settings.get_db_url_async(), echo=False, future=True,
+                                          isolation_level="READ COMMITTED")
 
 
 async def get_session() -> AsyncSession:
