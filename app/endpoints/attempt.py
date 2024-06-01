@@ -13,6 +13,7 @@ from app.db import get_session, User, Practice, Course, Participation, Submissio
 from app.dependencies import auth_dependency, Pagination, pagination_dependency
 from app.schemas import AttemptOut, AttemptIn, PaginationResult
 from app.config import settings
+from app.utils import send_parallel_post
 
 router = APIRouter(
     prefix='',
@@ -49,6 +50,8 @@ async def send_attempt(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Language with id={attempt_data.language_id} not allowed for this practice",
         )
+    # Get testcases
+    testcases = list(practice.testcases)
     # Create attempt object
     attempt = Attempt(
         language_id=attempt_data.language_id,
@@ -56,51 +59,62 @@ async def send_attempt(
         sent_time=datetime.now(),
         author_id=user.id,
         practice_id=practice_id,
-        status=SubmissionStatus.IN_QUEUE
+        status=SubmissionStatus.IN_QUEUE,
+        tests_needed=len(testcases),
+        tests_completed=0,
     )
     session.add(attempt)
     await session.commit()
     submissions = []
     # Preparing data for multiple submission
-    for testcase in practice.testcases:
+    for testcase in testcases:
         submissions.append(
             {
                 "source_code": attempt_data.source_code,
                 "language_id": LANGUAGES[attempt_data.language_id].judge0id,
                 "memory_limit": practice.memory_limit,
                 "cpu_time_limit": practice.time_limit / 1000,
-                "excepted_output": testcase.excepted,
+                "expected_output": testcase.excepted,
                 "stdin": testcase.input,
                 "network": practice.network,
                 "max_threads": practice.max_threads,
                 "callback_url": f"{settings.CALLBACK_URL}:{settings.APP_PORT}",
             }
         )
+    # Lock row to create queue
+    await session.execute(
+        select(Attempt).
+        where(Attempt.id == attempt.id).
+        with_for_update()
+    )
     # Send multiple submissions in one request
     async with AsyncClient() as client:
-        response = await client.post(
-            url=f"{settings.JUDGE0_HOST}:{settings.JUDGE0_PORT}/submissions/batch",
-            json={
-                "submissions": submissions,
-            }
+        responses = await send_parallel_post(
+            client=client,
+            url=f"{settings.JUDGE0_HOST}:{settings.JUDGE0_PORT}/submissions",
+            jsons=submissions,
         )
-        if response.status_code in (200, 201):
-            tokens = [submission_info["token"] for submission_info in response.json()]
-            submissions = [
-                Submission(
-                    token=token,
-                    status=SubmissionStatus.IN_QUEUE,
-                    time=0,
-                    memory=0,
-                    attempt_id=attempt.id,
-                )
-                for token in tokens
-            ]
-            session.add_all(submissions)
+    # Check service availability
+    for response in responses:
+        if response.status_code not in (200, 201):
+            # if service not available: mark attempt as service error
+            attempt.status = SubmissionStatus.SERVICE_ERROR
             await session.commit()
-            return Response(status_code=status.HTTP_201_CREATED)
-        else:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+    submission_instances = []
+    for response in responses:
+        token = response.json()["token"]
+        submission_instances.append(
+            Submission(
+                token=token,
+                status=SubmissionStatus.IN_QUEUE,
+                time=0,
+                memory=0,
+                attempt_id=attempt.id,
+            )
+        )
+    session.add_all(submission_instances)
+    await session.commit()
 
 
 @router.get(
