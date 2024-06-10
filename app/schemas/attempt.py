@@ -25,3 +25,9 @@ class AttemptOut(BaseModel):
     status: SubmissionStatus
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AttemptSummary(BaseModel):
+    user_id: UUID
+    display_name: str
+    accepted: bool

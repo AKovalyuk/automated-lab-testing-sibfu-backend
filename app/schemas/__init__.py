@@ -11,7 +11,7 @@ from .course import (
 )
 from .practice import PracticeIn, PracticeOut
 from .language import Language
-from .attempt import AttemptIn, AttemptOut
+from .attempt import AttemptIn, AttemptOut, AttemptSummary
 from .callback_server import CallbackRequestStatus, CallbackServerRequest
 from .testcase import TestCaseIn, TestCaseOut, TestCaseOutBrief
 from .image import ImageOut
