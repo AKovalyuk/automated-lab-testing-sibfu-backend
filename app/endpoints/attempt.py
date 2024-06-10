@@ -4,14 +4,14 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path, Depends, Body, HTTPException, status, Response
 from starlette import status
-from sqlalchemy import select, desc, func
+from sqlalchemy import select, desc, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from httpx import AsyncClient
 
 from app.config.languages import LANGUAGES
 from app.db import get_session, User, Practice, Course, Participation, Submission, SubmissionStatus, Attempt
 from app.dependencies import auth_dependency, Pagination, pagination_dependency
-from app.schemas import AttemptOut, AttemptIn, PaginationResult
+from app.schemas import AttemptOut, AttemptIn, PaginationResult, AttemptSummary
 from app.config import settings
 from app.utils import send_parallel_post
 
@@ -155,6 +155,46 @@ async def get_attempts(
 
 
 @router.get(
+    path='/practice/{practice_id}/summary',
+    status_code=status.HTTP_200_OK,
+)
+async def get_practice_summary(
+        practice_id: Annotated[UUID, Path()],
+        user: Annotated[User, Depends(auth_dependency)],
+        session: Annotated[AsyncSession, Depends(get_session)],
+) -> list[AttemptSummary]:
+    practice = await session.get(Practice, practice_id)
+    if not practice:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not user.is_teacher:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    query = text("""
+        SELECT "user".id AS user_id, "user".display_name, 
+        (SELECT COUNT(*) FROM attempt WHERE attempt.status = :accept_status) AS accept_count 
+        FROM "user" WHERE "user".id IN (
+            SELECT participation.user_id FROM participation JOIN "user" ON participation.user_id = "user".id
+            WHERE participation.course_id = :course_id AND NOT participation.is_request AND NOT "user".is_teacher
+        );
+    """)
+    results = await session.execute(
+        statement=query,
+        params={
+            "course_id": practice.course_id,
+            "accept_status": SubmissionStatus.ACCEPTED,
+        }
+    )
+    return [
+        AttemptSummary(
+            user_id=result["user_id"],
+            display_name=result["display_name"],
+            accepted=result["accept_count"] > 0,
+        )
+        for result in results.mappings()
+    ]
+
+
+@router.get(
     path='/practice/{practice_id}/attempt/{attempt_id}',
     response_model=AttemptOut,
     status_code=status.HTTP_200_OK,
@@ -166,4 +206,3 @@ async def get_attempt_detailed(
     """
     Get detailed information about attempt
     """
-    pass
