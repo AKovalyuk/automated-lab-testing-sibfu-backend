@@ -81,6 +81,7 @@ async def send_attempt(
                 "callback_url": f"{settings.CALLBACK_URL}:{settings.APP_PORT}",
             }
         )
+    print(f'Submissions: {submissions}')
     # Lock row to create queue
     await session.execute(
         select(Attempt).
@@ -98,6 +99,7 @@ async def send_attempt(
     for response in responses:
         if response.status_code not in (200, 201):
             print(response)
+            print(response.text)
             # if service not available: mark attempt as service error
             attempt.status = SubmissionStatus.SERVICE_ERROR
             await session.commit()
