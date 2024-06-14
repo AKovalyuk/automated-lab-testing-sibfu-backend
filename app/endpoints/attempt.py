@@ -97,6 +97,7 @@ async def send_attempt(
     # Check service availability
     for response in responses:
         if response.status_code not in (200, 201):
+            print(response)
             # if service not available: mark attempt as service error
             attempt.status = SubmissionStatus.SERVICE_ERROR
             await session.commit()
