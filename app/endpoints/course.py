@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Path, Body, Depends, Query, HTTPException
 from starlette import status
@@ -247,24 +247,34 @@ async def get_participation(
         user: Annotated[User, Depends(auth_dependency)],
         session: Annotated[AsyncSession, Depends(get_session)],
         pagination: Annotated[Pagination, Depends(pagination_dependency)],
+        participation_status: Annotated[Literal["request", "participant"], Query()]=None,
 ) -> PaginationResult[ParticipationOut]:
     course = await session.get(Course, ident=course_id)
     if not user.is_teacher:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     if course:
-        results = await session.execute(
+        query = (
             select(User.__table__.c, Participation.is_request.label('is_request'), Participation.user_id).
             join(Participation).
             where(Participation.course_id == course_id).
             limit(pagination.size).
             offset(pagination.size * (pagination.page - 1))
         )
-        count = await session.scalar(
+        count_query = (
             select(func.count()).
             select_from(User, Participation).
             join(Participation).
             where(Participation.course_id == course_id)
         )
+        if participation_status:
+            if participation_status == "request":
+                query = query.where(Participation.is_request == True)
+                count_query = count_query.where(Participation.is_request == True)
+            else:
+                query = query.where(Participation.is_request == False)
+                count_query = count_query.where(Participation.is_request == False)
+        results = await session.execute(query)
+        count = await session.scalar(count_query)
         return PaginationResult[ParticipationOut](
             count=count,
             results=[
