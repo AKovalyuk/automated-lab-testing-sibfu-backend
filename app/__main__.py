@@ -55,6 +55,7 @@ async def swagger_ui():
     return get_swagger_ui_html(
         title=app.title,
         openapi_url=app.openapi_url,
+        # Custom CDN source for swagger-ui
         swagger_js_url="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
         swagger_css_url="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css",
     )

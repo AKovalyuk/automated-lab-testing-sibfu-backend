@@ -40,7 +40,6 @@ async def callback(
         message: CallbackServerRequest,
         session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    print(message.status)
     # wait for database
     await asyncio.sleep(2)
     attempt_id = await session.scalar(
@@ -63,7 +62,6 @@ async def callback(
             memory=message.memory,
         )
     )
-    print(attempt.tests_completed, flush=True)
     await session.flush()
     # if all tests completed
     if attempt.tests_completed == attempt.tests_needed and attempt.status == SubmissionStatus.IN_QUEUE:
@@ -74,7 +72,6 @@ async def callback(
         counter = Counter()
         for subm in sibling_submissions:
             counter[subm.status] += 1
-        print(counter.most_common())
         # If any service error
         if counter[SubmissionStatus.SERVICE_ERROR] > 0:
             attempt.status = SubmissionStatus.SERVICE_ERROR

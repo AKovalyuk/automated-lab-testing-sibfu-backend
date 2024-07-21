@@ -20,8 +20,6 @@ class AttemptOut(BaseModel):
     sent_time: datetime
     author_id: UUID
     practice_id: UUID
-    # passed_count: int
-    # total_tests: int
     status: SubmissionStatus
 
     model_config = ConfigDict(from_attributes=True)

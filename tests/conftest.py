@@ -14,9 +14,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
-#from app.dependencies import get_current_user
-# from tests.utils import make_alembic_config
-
 from app.__main__ import app
 from app.config import settings
 from app.db.connection import SessionManager

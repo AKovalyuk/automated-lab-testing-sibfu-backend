@@ -16,7 +16,7 @@ async def auth_dependency(
     try:
         auth_data = authorization.removeprefix('Basic ')
         username, password = b64decode(auth_data).decode(encoding='utf-8').split(':')
-    except Exception as e:  # TODO типы исключений
+    except Exception as e:  # TODO Exceptions types
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f'Bad authorization header: {e}'
