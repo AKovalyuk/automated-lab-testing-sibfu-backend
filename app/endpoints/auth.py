@@ -4,7 +4,6 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Body, Path, Depends
 from fastapi.responses import RedirectResponse, Response
 from starlette import status
-from fastapi_mail import FastMail, MessageSchema, MessageType
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -32,19 +31,6 @@ async def register_user(user_data: Annotated[UserIn, Body()], session: Annotated
             status_code=status.HTTP_409_CONFLICT,
             content="Email is already taken.",
         )
-    # redis = get_redis_client()
-    # ref_id = uuid4()
-    # # TODO TTL, atomic
-    # redis.hset(f'ref_ids_{ref_id}', 'username', user_data.username)
-    # redis.hset(f'ref_ids_{ref_id}', 'password_hash', hash_password(user_data.password))
-    # email_message = MessageSchema(
-    #     subject=f"Registration {ref_id}",
-    #     recipients=[user_data.email],
-    #     body=f"Please follow {settings.HOST}/api/v1/confirmation/{ref_id}",
-    #     subtype=MessageType.plain,
-    # )
-    # fm = FastMail(mail_config)
-    # await fm.send_message(email_message)
     await create_user(
         password=user_data.password,
         session=session,
@@ -77,79 +63,3 @@ async def confirm_registration(
             **data,
         )
         return Response('You\'re successfully confirmed your registration', status_code=status.HTTP_200_OK)
-
-
-@router.get(
-    path='/password_change_confirm/{confirmation_id}',
-    status_code=status.HTTP_307_TEMPORARY_REDIRECT,
-    response_class=RedirectResponse,
-)
-async def change_password_confirmation(confirmation_id: Annotated[UUID, Path()]):
-    """
-    Change password email link
-    """
-    pass
-
-
-@router.post(
-    path='/authentication',
-    status_code=status.HTTP_200_OK,
-    response_model=AuthenticationOut,
-)
-async def authenticate(credentials: Annotated[AuthenticationIn, Body()]) -> AuthenticationOut:
-    """
-    Authenticate by credentials
-    """
-    pass
-
-
-@router.post(
-    path='/refresh',
-    status_code=status.HTTP_200_OK,
-    response_model=AuthenticationOut,
-)
-async def refresh() -> AuthenticationOut:
-    """
-    Refresh token
-    """
-    pass
-
-
-@router.post(
-    path='/password',
-    status_code=status.HTTP_200_OK,
-)
-async def change_password(
-        password_data: Annotated[PasswordUpdate, Body()],
-):
-    """
-    Change password, no response body
-    """
-    pass
-
-
-@router.get(
-    path='/registration_request',
-    status_code=status.HTTP_200_OK,
-    response_model=list[RegistrationRequest],
-)
-async def get_registration_requests(
-        pagination: Annotated[Pagination, Depends(pagination_dependency)],
-) -> list[RegistrationRequest]:
-    """
-    Get teacher's registrations requests (Only for admin)
-    """
-    pass
-
-
-@router.patch(
-    path='/registration_request/{reg_request_id}',
-    status_code=status.HTTP_200_OK,
-)
-async def accept_or_decline_registration_request(
-        reg_request_id: Annotated[UUID, Path()],
-):
-    """
-    Accept or decline teacher registration request (Only for admin)
-    """
-    pass

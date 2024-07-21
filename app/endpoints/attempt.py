@@ -81,7 +81,6 @@ async def send_attempt(
                 "callback_url": f"{settings.CALLBACK_URL}:{settings.APP_PORT}",
             }
         )
-    print(f'Submissions: {submissions}')
     # Lock row to create queue
     await session.execute(
         select(Attempt).

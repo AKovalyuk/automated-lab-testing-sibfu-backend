@@ -7,7 +7,6 @@ from app.config import settings
 
 
 class LocalFileStorage(AbstractFileStorage):
-    # TODO Chunk-by-chunk read
 
     def __init__(self, storage_name: str):
         self.storage_name = storage_name

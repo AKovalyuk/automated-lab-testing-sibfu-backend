@@ -38,6 +38,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    if: false
     steps:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
